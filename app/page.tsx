@@ -2,11 +2,14 @@
 
 // 担当: エンジニアA（ホーム・ダッシュボード）
 // docs/tasks/A-home-character.md の受け入れ条件に対応
+// + 旬レシピ提案（機能③）とデモデータ投入を配線
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getProgress, getFridge } from "@/lib/storage";
 import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/expiry";
+import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
+import { seedDemo, clearDemo } from "@/lib/seed";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
 import type { FoodItem, UserProgress } from "@/types";
@@ -22,11 +25,16 @@ const DEFAULT_PROGRESS: UserProgress = {
 export default function HomePage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [alerts, setAlerts] = useState<FoodItem[]>([]);
+  const [recipes, setRecipes] = useState<RecipeSuggestion[]>([]);
 
   // localStorage 読み出しは useEffect 内（ハイドレーション不整合を避ける）
   useEffect(() => {
+    const fridge = getFridge();
     setProgress(getProgress());
-    setAlerts(sortByExpiry(getFridge()).slice(0, 3));
+    setAlerts(sortByExpiry(fridge).slice(0, 3));
+    // 旬（現在の月）× 手持ち食材 でおすすめレシピを算出
+    const season = seasonFromMonth(new Date().getMonth() + 1);
+    setRecipes(suggestRecipes(fridge, season, 3));
   }, []);
 
   return (
@@ -77,6 +85,29 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* 旬の料理提案（機能③）: 冷蔵庫の食材 × 季節 */}
+      {recipes.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold text-slate-800">
+            🍳 今ある食材で作れる旬レシピ
+          </h2>
+          <ul className="mt-2 space-y-2">
+            {recipes.map((r) => (
+              <li
+                key={r.name}
+                className="rounded-lg border border-brand/30 bg-brand/5 p-3"
+              >
+                <p className="text-sm font-semibold text-slate-800">{r.name}</p>
+                <p className="mt-0.5 text-xs text-slate-600">{r.description}</p>
+                <p className="mt-1 text-xs text-brand">
+                  使える食材: {r.matched.join("・")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* クイックアクション */}
       <section className="mt-6">
         <h2 className="text-sm font-semibold text-slate-800">クイックアクション</h2>
@@ -99,6 +130,33 @@ export default function HomePage() {
             </span>
             <span className="text-sm font-semibold">レシート読取</span>
           </Link>
+        </div>
+      </section>
+
+      {/* デモ用: ワンタップでサンプル投入 / リセット（発表・動作確認用） */}
+      <section className="mt-10 border-t border-dashed border-slate-200 pt-4">
+        <p className="text-xs text-slate-400">デモ用</p>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              seedDemo();
+              window.location.reload();
+            }}
+            className="rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/5"
+          >
+            デモデータを投入
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              clearDemo();
+              window.location.reload();
+            }}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+          >
+            全データをリセット
+          </button>
         </div>
       </section>
     </main>
