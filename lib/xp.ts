@@ -52,6 +52,19 @@ export function levelProgressRatio(totalXP: number): number {
   return xpIntoLevel(totalXP) / XP_PER_LEVEL;
 }
 
+/** 交換に使える残りスタンプ数（総獲得 - 交換で消費済み） */
+export function availableStamps(progress: UserProgress): number {
+  return Math.max(0, progress.stamps - (progress.redeemedStamps ?? 0));
+}
+
+/** スタンプを cost 枚消費した新しい進捗を返す（純粋関数） */
+export function redeemStamps(progress: UserProgress, cost: number): UserProgress {
+  return {
+    ...progress,
+    redeemedStamps: (progress.redeemedStamps ?? 0) + cost,
+  };
+}
+
 /** レベルから現在のキャラクターステージを返す */
 export function stageFromLevel(level: number): CharacterStage {
   let current = STAGES[0];

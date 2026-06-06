@@ -6,28 +6,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  getProgress,
-  saveProgress,
-  getFridge,
-  getPlans,
-  updatePlan,
-} from "@/lib/storage";
+import { getProgress, getFridge, getLogs } from "@/lib/storage";
 import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/expiry";
 import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
-import { recommendProducts, type ProductSuggestion } from "@/lib/products";
-import { applyXP, XP_REWARDS } from "@/lib/xp";
-import {
-  logEcoAction,
-  tryAwardZeroLossWeek,
-  getZeroLossStatus,
-  type ZeroLossStatus,
-} from "@/lib/achievements";
-import { getSavingsStats, type SavingsStats } from "@/lib/savings";
 import { seedDemo, clearDemo } from "@/lib/seed";
+import { isEnabled, notifyExpiring } from "@/lib/notify";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
-import type { FoodItem, UserProgress, PlannedMeal } from "@/types";
+import NotifyToggle from "@/components/NotifyToggle";
+import RecipeShareButton from "@/components/RecipeShareButton";
+import type { FoodItem, UserProgress } from "@/types";
 
 // storage の DEFAULT_PROGRESS 相当（SSR と初期描画の整合用）
 const DEFAULT_PROGRESS: UserProgress = {
@@ -39,170 +27,94 @@ const DEFAULT_PROGRESS: UserProgress = {
 
 export default function HomePage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [fridge, setFridge] = useState<FoodItem[]>([]);
   const [alerts, setAlerts] = useState<FoodItem[]>([]);
   const [recipes, setRecipes] = useState<RecipeSuggestion[]>([]);
-  const [shopPicks, setShopPicks] = useState<ProductSuggestion[]>([]);
-  const [plans, setPlans] = useState<PlannedMeal[]>([]);
-  const [zeroLoss, setZeroLoss] = useState<ZeroLossStatus | null>(null);
-  const [savings, setSavings] = useState<SavingsStats | null>(null);
+  const [fridgeCount, setFridgeCount] = useState(0);
+  const [cookCount, setCookCount] = useState(0);
 
   // localStorage 読み出しは useEffect 内（ハイドレーション不整合を避ける）
   useEffect(() => {
-    const fridge = getFridge();
+    const items = getFridge();
     setProgress(getProgress());
-    setAlerts(sortByExpiry(fridge).slice(0, 3));
+    setFridge(items);
+    setFridgeCount(items.length);
+    setCookCount(getLogs().length);
+    setAlerts(sortByExpiry(items).slice(0, 3));
     // 旬（現在の月）× 手持ち食材 でおすすめレシピを算出
     const season = seasonFromMonth(new Date().getMonth() + 1);
-    setRecipes(suggestRecipes(fridge, season, 3));
-    // 折衷C: 冷蔵庫の状態に連動した ¥390 おすすめ
-    setShopPicks(recommendProducts(fridge, 2));
-    setZeroLoss(getZeroLossStatus(fridge));
-    setSavings(getSavingsStats());
-    loadPlans();
+    setRecipes(suggestRecipes(items, season, 3));
+    // 通知ON時は起動時に期限アラート（内部で1日1回にスロットル）
+    if (isEnabled()) void notifyExpiring(items);
   }, []);
 
-  function loadPlans() {
-    // 未完了の予定を、食べる日が近い順に
-    const upcoming = getPlans()
-      .filter((p) => !p.done)
-      .sort((a, b) => a.eatDate.localeCompare(b.eatDate));
-    setPlans(upcoming);
-  }
-
-  // 予定どおり食べた → 食習慣ボーナス XP（＋ロスゼロ週間の判定）
-  function handleAte(plan: PlannedMeal) {
-    updatePlan(plan.id, { done: true });
-    let next = applyXP(getProgress(), XP_REWARDS.ateAsPlanned);
-    saveProgress(next);
-    // ロス削減アクションとして記録 → ロスゼロ週間ボーナス
-    logEcoAction();
-    const fridge = getFridge();
-    if (tryAwardZeroLossWeek(fridge)) {
-      next = getProgress(); // ボーナス反映後の進捗を取り直す
-    }
-    setProgress(next);
-    setZeroLoss(getZeroLossStatus(fridge));
-    setSavings(getSavingsStats());
-    loadPlans();
-  }
-
   return (
-    <main className="px-4 py-6">
-      <h1 className="text-xl font-bold text-slate-800">メシ活</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        今日も食品ロスゼロを目指そう！
-      </p>
-
-      {/* 救った量カウンター（ピッチの主役）: 今月の成果を数値で */}
-      {savings && (
-        <section className="mt-4 rounded-2xl bg-brand p-5 text-white shadow-sm">
-          <p className="text-xs font-semibold opacity-90">
-            🛟 今月、あなたが救った食品
+    <main className="page">
+      <header className="flex items-end justify-between">
+        <div>
+          <p className="text-xs font-bold tracking-widest text-accent">
+            MESHIKATSU
           </p>
-          <div className="mt-1 flex items-end gap-4">
-            <div>
-              <span className="text-4xl font-extrabold leading-none">
-                {savings.rescuedThisMonth}
-              </span>
-              <span className="ml-1 text-sm font-semibold">品</span>
-            </div>
-            <div className="pb-0.5">
-              <span className="text-2xl font-bold leading-none">
-                ¥{savings.yenThisMonth.toLocaleString()}
-              </span>
-              <span className="ml-1 text-xs opacity-90">節約</span>
+          <h1 className="page-title">メシ活</h1>
+          <p className="page-sub">今日も食品ロスゼロを目指そう！</p>
+        </div>
+        <div className="text-4xl" aria-hidden>
+          🍱
+        </div>
+      </header>
+
+      {/* ヒーロー: キャラクター + XPバー + ステータス */}
+      <section className="mt-5 overflow-hidden rounded-4xl bg-gradient-to-br from-brand to-brand-dark p-5 text-white shadow-glow">
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 rounded-3xl bg-white/15 p-2">
+            <CharacterDisplay level={progress.level} size="md" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-white/80">現在のレベル</p>
+            <p className="text-3xl font-black leading-none">Lv.{progress.level}</p>
+            <div className="mt-3">
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-black/15">
+                <div
+                  className="h-full rounded-full bg-gold transition-all duration-700"
+                  style={{
+                    width: `${Math.max(4, (progress.totalXP % 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-[11px] font-semibold text-white/80">
+                次のレベルまで {100 - (progress.totalXP % 100)} XP
+              </p>
             </div>
           </div>
-          <p className="mt-2 text-[11px] opacity-80">
-            期限内に使い切る・予定どおり食べるたびにカウント
-          </p>
-        </section>
-      )}
-
-      {/* キャラクター + XPバー */}
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <CharacterDisplay level={progress.level} />
-        <div className="mt-4">
-          <XPBar totalXP={progress.totalXP} />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <Stat label="冷蔵庫" value={`${fridgeCount}`} unit="品" />
+          <Stat label="料理記録" value={`${cookCount}`} unit="回" />
+          <Stat label="スタンプ" value={`${progress.stamps}`} unit="個" />
         </div>
       </section>
 
-      {/* ロスゼロ週間チャレンジ（機能④の特別ボーナス +500XP）*/}
-      {zeroLoss && (
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-slate-800">
-            🌱 今週のロスゼロチャレンジ
-          </h2>
-          <div
-            className={`mt-2 rounded-2xl border p-4 ${
-              zeroLoss.alreadyAwarded
-                ? "border-brand bg-brand/10"
-                : "border-slate-200 bg-white"
-            }`}
-          >
-            {zeroLoss.alreadyAwarded ? (
-              <p className="text-sm font-semibold text-brand">
-                🏆 今週はロスゼロ達成済み！ +{XP_REWARDS.zeroLossWeek} XP 獲得済
-              </p>
-            ) : (
-              <>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">
-                    ロス削減アクション {zeroLoss.ecoDays}/{zeroLoss.target} 日
-                  </span>
-                  {zeroLoss.wasted > 0 ? (
-                    <span className="text-urgent">
-                      期限切れ {zeroLoss.wasted} 件
-                    </span>
-                  ) : (
-                    <span className="text-safe">期限切れ 0 件 ✓</span>
-                  )}
-                </div>
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-brand transition-all"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        (zeroLoss.ecoDays / zeroLoss.target) * 100
-                      )}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-slate-500">
-                  期限切れを出さずに週{zeroLoss.target}回使い切ると +
-                  {XP_REWARDS.zeroLossWeek} XP の特別ボーナス！
-                </p>
-              </>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* 期限アラート */}
       <section className="mt-6">
-        <h2 className="text-sm font-semibold text-slate-800">⏰ 期限が近い食材</h2>
+        <h2 className="section-title">⏰ 期限が近い食材</h2>
         {alerts.length === 0 ? (
-          <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
+          <p className="card-soft text-sm text-ink-soft">
             期限が近い食材はありません。冷蔵庫に食材を追加しましょう。
           </p>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="space-y-2">
             {alerts.map((item) => {
               const status = expiryStatus(item.expiryDate);
               return (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"
+                  className="flex items-center justify-between rounded-2xl border border-black/5 bg-white p-3.5 shadow-card"
                 >
-                  <span className="text-sm text-slate-700">
-                    {statusLabel(item.expiryDate)}で{item.name}が期限切れ
+                  <span className="text-sm font-semibold text-ink">
+                    <span aria-hidden>🥬 </span>
+                    {item.name}
                   </span>
-                  <span
-                    className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClasses(
-                      status
-                    )}`}
-                  >
+                  <span className={`chip ${statusClasses(status)}`}>
                     {statusLabel(item.expiryDate)}
                   </span>
                 </li>
@@ -212,127 +124,103 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 食べる予定（折衷C: いつ・どれだけ食べるか）*/}
-      {plans.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-slate-800">📅 食べる予定</h2>
-          <ul className="mt-2 space-y-2">
-            {plans.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3"
-              >
-                <span className="text-2xl" aria-hidden>
-                  {p.emoji}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-800">
-                    {p.productName}
-                  </p>
-                  <p className="text-xs text-slate-500">{p.eatDate} に食べる予定</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleAte(p)}
-                  className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark"
-                >
-                  食べた +{XP_REWARDS.ateAsPlanned}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* 期限通知のオプトイン */}
+      <section className="mt-4">
+        <NotifyToggle items={fridge} />
+      </section>
 
-      {/* あと一品どう？（折衷C: ¥390 販売導線・冷蔵庫の状態に連動）*/}
-      {shopPicks.length > 0 && (
-        <section className="mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-800">
-              🍱 あと一品どう？（¥390）
-            </h2>
-            <Link href="/shop" className="text-xs font-semibold text-brand">
-              ショップへ →
-            </Link>
-          </div>
-          <ul className="mt-2 space-y-2">
-            {shopPicks.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-3 rounded-lg border border-brand/30 bg-brand/5 p-3"
-              >
-                <span className="text-2xl" aria-hidden>
-                  {p.emoji}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-800">
-                    {p.name}
-                  </p>
-                  <p className="truncate text-xs text-brand">{p.reason}</p>
-                </div>
-                <Link
-                  href="/shop"
-                  className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark"
-                >
-                  ¥{p.price}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* 旬の料理提案（機能③）: 冷蔵庫の食材 × 季節 */}
-      {recipes.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-slate-800">
-            🍳 今ある食材で作れる旬レシピ
-          </h2>
-          <ul className="mt-2 space-y-2">
+      {/* 旬の料理提案（機能③）＋ レシピ共有 */}
+      <section className="mt-6">
+        <h2 className="section-title">
+          🍳 旬レシピ
+          <Link href="/recipe/new" className="ml-auto text-xs font-bold text-accent">
+            ＋ 作って共有
+          </Link>
+        </h2>
+        {recipes.length > 0 ? (
+          <ul className="space-y-2">
             {recipes.map((r) => (
               <li
                 key={r.name}
-                className="rounded-lg border border-brand/30 bg-brand/5 p-3"
+                className="rounded-2xl border border-brand/20 bg-brand-light/60 p-4"
               >
-                <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                <p className="mt-0.5 text-xs text-slate-600">{r.description}</p>
-                <p className="mt-1 text-xs text-brand">
-                  使える食材: {r.matched.join("・")}
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-black text-ink">{r.name}</p>
+                  <RecipeShareButton
+                    recipe={{
+                      name: r.name,
+                      ingredients: r.ingredients,
+                      steps: r.steps ?? [],
+                      description: r.description,
+                    }}
+                    variant="chip"
+                  />
+                </div>
+                <p className="mt-0.5 text-xs text-ink-soft">{r.description}</p>
+                <p className="mt-1.5 text-xs font-bold text-brand-dark">
+                  <span aria-hidden>✓ </span>使える食材: {r.matched.join("・")}
                 </p>
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="card-soft text-sm text-ink-soft">
+            冷蔵庫に食材を入れると、使い切れる旬レシピを提案します。
+          </p>
+        )}
+      </section>
+
+      {/* 補充の提案（折衷案）: 在庫が少ない or 期限が近いとき */}
+      {(fridgeCount < 5 || alerts.length > 0) && (
+        <section className="mt-6">
+          <Link
+            href="/shop"
+            className="flex items-center gap-3 rounded-3xl border border-accent/20 bg-accent-light/50 p-4 transition-transform active:scale-[0.98]"
+          >
+            <span className="text-3xl" aria-hidden>
+              🛒
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-black text-ink">
+                在庫が少なくなっています
+              </span>
+              <span className="block text-xs text-ink-soft">
+                足りない食材を390円から補充できます
+              </span>
+            </span>
+            <span className="shrink-0 text-sm font-black text-accent">補充 →</span>
+          </Link>
         </section>
       )}
 
       {/* クイックアクション */}
       <section className="mt-6">
-        <h2 className="text-sm font-semibold text-slate-800">クイックアクション</h2>
-        <div className="mt-2 grid grid-cols-2 gap-3">
+        <h2 className="section-title">クイックアクション</h2>
+        <div className="grid grid-cols-2 gap-3">
           <Link
             href="/cook"
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl bg-brand px-4 py-6 text-white shadow-sm transition-transform active:scale-95"
+            className="flex flex-col items-center justify-center gap-1.5 rounded-3xl bg-accent px-4 py-6 text-white shadow-card transition-transform active:scale-95"
           >
             <span className="text-3xl" aria-hidden>
               🍳
             </span>
-            <span className="text-sm font-semibold">料理を記録</span>
+            <span className="text-sm font-black">料理を記録</span>
           </Link>
           <Link
             href="/receipt"
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-brand bg-white px-4 py-6 text-brand shadow-sm transition-transform active:scale-95"
+            className="flex flex-col items-center justify-center gap-1.5 rounded-3xl border-2 border-brand bg-white px-4 py-6 text-brand transition-transform active:scale-95"
           >
             <span className="text-3xl" aria-hidden>
               🧾
             </span>
-            <span className="text-sm font-semibold">レシート読取</span>
+            <span className="text-sm font-black">レシート読取</span>
           </Link>
         </div>
       </section>
 
       {/* デモ用: ワンタップでサンプル投入 / リセット（発表・動作確認用） */}
-      <section className="mt-10 border-t border-dashed border-slate-200 pt-4">
-        <p className="text-xs text-slate-400">デモ用</p>
+      <section className="mt-10 border-t border-dashed border-ink/15 pt-4">
+        <p className="text-xs font-bold text-ink-soft/60">デモ用</p>
         <div className="mt-2 flex gap-2">
           <button
             type="button"
@@ -340,7 +228,7 @@ export default function HomePage() {
               seedDemo();
               window.location.reload();
             }}
-            className="rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/5"
+            className="rounded-xl border border-brand px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-light"
           >
             デモデータを投入
           </button>
@@ -350,12 +238,34 @@ export default function HomePage() {
               clearDemo();
               window.location.reload();
             }}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+            className="rounded-xl border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink-soft hover:bg-cream"
           >
             全データをリセット
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new Event("meshikatsu:open-onboarding"))
+            }
+            className="rounded-xl border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink-soft hover:bg-cream"
+          >
+            チュートリアルを見る
           </button>
         </div>
       </section>
     </main>
+  );
+}
+
+/** ヒーロー内の小さなステータス表示 */
+function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
+  return (
+    <div className="rounded-2xl bg-white/15 py-2">
+      <p className="text-[10px] font-semibold text-white/70">{label}</p>
+      <p className="text-lg font-black leading-none">
+        {value}
+        <span className="text-[11px] font-bold">{unit}</span>
+      </p>
+    </div>
   );
 }

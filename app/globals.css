@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fff8ef; /* cream */
+  --foreground: #3a2a1b; /* ink */
 }
 
 html,
@@ -17,9 +17,64 @@ body {
   color: var(--foreground);
   background: var(--background);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* 下部ナビ分の余白を全画面に確保 */
 .app-shell {
-  padding-bottom: 5rem;
+  padding-bottom: 5.5rem;
+}
+
+@layer components {
+  /* 各画面の標準パディング */
+  .page {
+    @apply px-4 pt-6;
+  }
+  .page-title {
+    @apply text-2xl font-black tracking-tight text-ink;
+  }
+  .page-sub {
+    @apply mt-1 text-sm text-ink-soft;
+  }
+  .section-title {
+    @apply mb-2 flex items-center gap-1.5 text-sm font-bold text-ink;
+  }
+
+  /* カード */
+  .card {
+    @apply rounded-3xl border border-black/5 bg-white p-5 shadow-card;
+  }
+  .card-soft {
+    @apply rounded-2xl border border-black/5 bg-white/70 p-4;
+  }
+
+  /* ボタン */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white shadow-glow hover:bg-brand-dark;
+  }
+  .btn-accent {
+    @apply btn bg-accent text-white hover:bg-accent-dark;
+  }
+  .btn-ghost {
+    @apply btn border-2 border-brand bg-white text-brand hover:bg-brand-light;
+  }
+  .btn-outline {
+    @apply btn border border-black/10 bg-white text-ink-soft hover:bg-cream;
+  }
+
+  /* 入力 */
+  .field {
+    @apply mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/25;
+  }
+  .field-label {
+    @apply block text-xs font-bold text-ink-soft;
+  }
+
+  /* チップ */
+  .chip {
+    @apply shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold;
+  }
 }
