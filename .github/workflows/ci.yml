@@ -1,0 +1,29 @@
+name: CI (Next.js)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/nextjs-app]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # next build が型チェック(tsc)も兼ねるため build を通過ゲートにする。
+      # ESLint は未設定なので独立 lint ステップは置かない（build 内で skip 警告のみ）。
+      - name: Build
+        run: npm run build
+        env:
+          # レシート解析は OPENAI_API_KEY 未設定でもモックで動くため CI では不要
+          NEXT_TELEMETRY_DISABLED: "1"
