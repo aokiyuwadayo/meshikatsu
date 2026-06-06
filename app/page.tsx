@@ -10,8 +10,10 @@ import { getProgress, getFridge, getLogs } from "@/lib/storage";
 import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/expiry";
 import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
 import { seedDemo, clearDemo } from "@/lib/seed";
+import { isEnabled, notifyExpiring } from "@/lib/notify";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
+import NotifyToggle from "@/components/NotifyToggle";
 import type { FoodItem, UserProgress } from "@/types";
 
 // storage の DEFAULT_PROGRESS 相当（SSR と初期描画の整合用）
@@ -24,6 +26,7 @@ const DEFAULT_PROGRESS: UserProgress = {
 
 export default function HomePage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [fridge, setFridge] = useState<FoodItem[]>([]);
   const [alerts, setAlerts] = useState<FoodItem[]>([]);
   const [recipes, setRecipes] = useState<RecipeSuggestion[]>([]);
   const [fridgeCount, setFridgeCount] = useState(0);
@@ -31,14 +34,17 @@ export default function HomePage() {
 
   // localStorage 読み出しは useEffect 内（ハイドレーション不整合を避ける）
   useEffect(() => {
-    const fridge = getFridge();
+    const items = getFridge();
     setProgress(getProgress());
-    setFridgeCount(fridge.length);
+    setFridge(items);
+    setFridgeCount(items.length);
     setCookCount(getLogs().length);
-    setAlerts(sortByExpiry(fridge).slice(0, 3));
+    setAlerts(sortByExpiry(items).slice(0, 3));
     // 旬（現在の月）× 手持ち食材 でおすすめレシピを算出
     const season = seasonFromMonth(new Date().getMonth() + 1);
-    setRecipes(suggestRecipes(fridge, season, 3));
+    setRecipes(suggestRecipes(items, season, 3));
+    // 通知ON時は起動時に期限アラート（内部で1日1回にスロットル）
+    if (isEnabled()) void notifyExpiring(items);
   }, []);
 
   return (
@@ -115,6 +121,11 @@ export default function HomePage() {
             })}
           </ul>
         )}
+      </section>
+
+      {/* 期限通知のオプトイン */}
+      <section className="mt-4">
+        <NotifyToggle items={fridge} />
       </section>
 
       {/* 旬の料理提案（機能③）: 冷蔵庫の食材 × 季節 */}
