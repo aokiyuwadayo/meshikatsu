@@ -1,194 +1,243 @@
 "use client";
 
-// 折衷C: ¥390 ショップ
-// B のツールで可視化した「あと一品/ロス」を、A の ¥390 商品で解決して販売。
-// 注文 → 「いつ食べる？」を設定（食習慣管理）→ XP。
+// 補充ショップ（折衷案 /shop）
+// 在庫が薄い/期限が近いとき ¥390 商品を補充。買うと冷蔵庫に入り、
+// 「補充→使い切り→ロス削減」のループが回る。※デモ＝実決済なし。
 
-import { useEffect, useState } from "react";
-import { getFridge, getProgress, saveProgress, addPlan, genId } from "@/lib/storage";
-import { applyXP, XP_REWARDS } from "@/lib/xp";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  getFridge,
+  addFoodItem,
+  getOrders,
+  addOrder,
+  genId,
+} from "@/lib/storage";
 import {
   PRODUCTS,
-  recommendProducts,
-  type ProductSuggestion,
-} from "@/lib/products";
-import type { FoodItem, Product } from "@/types";
-
-/** n 日後の YYYY-MM-DD */
-function dateAfter(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-}
+  productToFoodItem,
+  recommendReplenishment,
+  buildOrderLines,
+} from "@/lib/shop";
+import Toast from "@/components/Toast";
+import type { FoodItem, Order, ShopProduct } from "@/types";
 
 export default function ShopPage() {
   const [fridge, setFridge] = useState<FoodItem[]>([]);
-  const [recommended, setRecommended] = useState<ProductSuggestion[]>([]);
-  // 注文ダイアログ対象＋食べる予定日
-  const [ordering, setOrdering] = useState<Product | null>(null);
-  const [eatDate, setEatDate] = useState(dateAfter(1));
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [orders, setOrders] = useState<Order[]>([]);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    const f = getFridge();
-    setFridge(f);
-    setRecommended(recommendProducts(f, 2));
+    setFridge(getFridge());
+    setOrders(getOrders());
   }, []);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 2400);
+  const recommended = useMemo(() => recommendReplenishment(fridge, 3), [fridge]);
+  const recommendedIds = new Set(recommended.map((p) => p.id));
+
+  const lines = buildOrderLines(cart);
+  const totalQty = lines.reduce((s, l) => s + l.qty, 0);
+  const totalYen = lines.reduce((s, l) => s + l.qty * l.price, 0);
+
+  function add(id: string) {
+    setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  }
+  function sub(id: string) {
+    setCart((c) => {
+      const n = (c[id] ?? 0) - 1;
+      const next = { ...c };
+      if (n <= 0) delete next[id];
+      else next[id] = n;
+      return next;
+    });
   }
 
-  function confirmOrder() {
-    if (!ordering) return;
-    // 食べる予定（食習慣）として登録
-    addPlan({
+  /** 注文（デモ）: 各商品を冷蔵庫に追加し、注文履歴に残す */
+  function checkout() {
+    if (lines.length === 0) return;
+    const now = new Date();
+    for (const line of lines) {
+      const product = PRODUCTS.find((p) => p.id === line.productId)!;
+      for (let i = 0; i < line.qty; i++) {
+        addFoodItem(productToFoodItem(product, now));
+      }
+    }
+    const order: Order = {
       id: genId(),
-      productName: ordering.name,
-      emoji: ordering.emoji,
-      eatDate,
-      done: false,
-      orderedAt: new Date().toISOString(),
-    });
-    // 「食べる予定を立てた」XP
-    saveProgress(applyXP(getProgress(), XP_REWARDS.planMeal));
-    showToast(
-      `注文完了（デモ）¥${ordering.price} ・ +${XP_REWARDS.planMeal} XP 🎉`
-    );
-    setOrdering(null);
-    setEatDate(dateAfter(1));
+      lines,
+      total: totalYen,
+      at: now.toISOString(),
+    };
+    setOrders(addOrder(order));
+    setFridge(getFridge());
+    setCart({});
+    setToast(`${totalQty}点を冷蔵庫に補充しました（¥${totalYen.toLocaleString()}）🛒`);
   }
 
   return (
-    <main className="px-4 py-6">
-      <h1 className="text-xl font-bold text-slate-800">🍱 ショップ</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        あと一品を ¥{390} で。冷凍中心で日持ち、食べる日を決めて無駄なく。
-      </p>
+    <main className="page">
+      <Toast message={toast} onDone={() => setToast(null)} />
 
-      {/* 使い切りXPのトースト */}
-      {toast && (
-        <div className="fixed inset-x-0 top-4 z-50 mx-auto w-fit max-w-[90%] rounded-full bg-brand px-4 py-2 text-center text-sm font-semibold text-white shadow-lg">
-          {toast}
+      <header className="flex items-end justify-between">
+        <div>
+          <p className="text-xs font-bold tracking-widest text-accent">REFILL</p>
+          <h1 className="page-title">🛒 390円で補充</h1>
+          <p className="page-sub">足りない食材をワンタップで。買うと冷蔵庫に入ります。</p>
         </div>
-      )}
+        <div className="text-4xl" aria-hidden>
+          🧊
+        </div>
+      </header>
 
-      {/* あなたへのおすすめ（冷蔵庫の状態に連動） */}
+      {/* おすすめ補充（在庫に無いカテゴリ優先） */}
       {recommended.length > 0 && (
         <section className="mt-5">
-          <h2 className="text-sm font-semibold text-slate-800">
-            {fridge.length <= 2
-              ? "🧊 冷蔵庫がさみしいので…"
-              : "✨ あなたへのおすすめ"}
-          </h2>
-          <ul className="mt-2 space-y-2">
-            {recommended.map((p) => (
+          <h2 className="section-title">✨ あなたへのおすすめ</h2>
+          <div className="rounded-3xl border border-brand/20 bg-brand-light/60 p-3">
+            <ul className="space-y-2">
+              {recommended.map((p) => (
+                <ProductRow
+                  key={p.id}
+                  p={p}
+                  qty={cart[p.id] ?? 0}
+                  onAdd={() => add(p.id)}
+                  onSub={() => sub(p.id)}
+                  highlight
+                />
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* 全商品 */}
+      <section className="mt-6">
+        <h2 className="section-title">🍱 商品一覧</h2>
+        <ul className="space-y-2">
+          {PRODUCTS.filter((p) => !recommendedIds.has(p.id)).map((p) => (
+            <ProductRow
+              key={p.id}
+              p={p}
+              qty={cart[p.id] ?? 0}
+              onAdd={() => add(p.id)}
+              onSub={() => sub(p.id)}
+            />
+          ))}
+        </ul>
+      </section>
+
+      {/* 注文履歴 */}
+      {orders.length > 0 && (
+        <section className="mt-6">
+          <h2 className="section-title">📦 補充履歴</h2>
+          <ul className="space-y-2">
+            {orders.slice(0, 5).map((o) => (
               <li
-                key={p.id}
-                className="flex items-center gap-3 rounded-xl border border-brand/40 bg-brand/5 p-3"
+                key={o.id}
+                className="flex items-center justify-between rounded-2xl border border-black/5 bg-white p-3 text-sm shadow-card"
               >
-                <span className="text-3xl" aria-hidden>
-                  {p.emoji}
+                <span className="font-semibold text-ink">
+                  {o.lines.reduce((s, l) => s + l.qty, 0)}点 補充
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-800">{p.name}</p>
-                  <p className="text-xs text-brand">{p.reason}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOrdering(p)}
-                  className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark"
-                >
-                  ¥{p.price}
-                </button>
+                <span className="font-black text-ink">¥{o.total.toLocaleString()}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {/* 全商品 */}
-      <section className="mt-6">
-        <h2 className="text-sm font-semibold text-slate-800">すべての商品</h2>
-        <ul className="mt-2 grid grid-cols-2 gap-3">
-          {PRODUCTS.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-col rounded-xl border border-slate-200 bg-white p-3"
+      <p className="mt-6 text-center text-[11px] text-ink-soft/70">
+        ※ デモのため実際の決済は行われません
+      </p>
+
+      {/* 下部固定のカートバー（ナビの上に重ねる） */}
+      {totalQty > 0 && (
+        <div className="fixed inset-x-0 bottom-[68px] z-40 px-4">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink p-3 text-white shadow-card">
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold text-white/70">{totalQty}点</p>
+              <p className="text-lg font-black leading-none">¥{totalYen.toLocaleString()}</p>
+            </div>
+            <button
+              type="button"
+              onClick={checkout}
+              className="rounded-xl bg-accent px-5 py-2.5 text-sm font-black text-white hover:bg-accent-dark"
             >
-              <span className="text-4xl" aria-hidden>
-                {p.emoji}
-              </span>
-              <p className="mt-2 text-sm font-semibold text-slate-800">
-                {p.name}
-              </p>
-              <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">
-                {p.description}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-400">
-                冷凍で約{p.daysToKeep}日もつ
-              </p>
-              <button
-                type="button"
-                onClick={() => setOrdering(p)}
-                className="mt-2 rounded-lg bg-brand py-1.5 text-xs font-semibold text-white hover:bg-brand-dark"
-              >
-                ¥{p.price} で注文
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* 注文ダイアログ: いつ食べる？（食習慣管理） */}
-      {ordering && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl" aria-hidden>
-                {ordering.emoji}
-              </span>
-              <div>
-                <p className="font-semibold text-slate-800">{ordering.name}</p>
-                <p className="text-sm text-brand">¥{ordering.price}（都度払い）</p>
-              </div>
-            </div>
-
-            <label className="mt-4 block text-xs font-semibold text-slate-600">
-              いつ食べる？（食べる日を決めて無駄なく）
-            </label>
-            <input
-              type="date"
-              value={eatDate}
-              onChange={(e) => setEatDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setOrdering(null)}
-                className="flex-1 rounded-lg border border-slate-300 py-2 text-sm font-semibold text-slate-500"
-              >
-                やめる
-              </button>
-              <button
-                type="button"
-                onClick={confirmOrder}
-                className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-              >
-                注文して予定に追加
-              </button>
-            </div>
-            <p className="mt-2 text-center text-[11px] text-slate-400">
-              ※ MVP デモのため実際の決済は行われません
-            </p>
+              注文する（デモ）
+            </button>
           </div>
         </div>
       )}
+
+      <div className="mt-4 text-center">
+        <Link href="/fridge" className="text-xs font-bold text-brand">
+          冷蔵庫を見る →
+        </Link>
+      </div>
     </main>
+  );
+}
+
+/** 商品1行（数量ステッパー付き） */
+function ProductRow({
+  p,
+  qty,
+  onAdd,
+  onSub,
+  highlight,
+}: {
+  p: ShopProduct;
+  qty: number;
+  onAdd: () => void;
+  onSub: () => void;
+  highlight?: boolean;
+}) {
+  return (
+    <li
+      className={`flex items-center gap-3 rounded-2xl border p-3 ${
+        highlight ? "border-brand/20 bg-white" : "border-black/5 bg-white shadow-card"
+      }`}
+    >
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cream text-2xl" aria-hidden>
+        {p.emoji}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-black text-ink">
+          {p.name}
+          {p.tag && (
+            <span className="ml-1.5 rounded bg-brand-light px-1.5 py-0.5 text-[10px] font-bold text-brand">
+              {p.tag}
+            </span>
+          )}
+        </p>
+        <p className="text-xs font-bold text-ink-soft">¥{p.price.toLocaleString()}</p>
+      </div>
+      {qty > 0 ? (
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onSub}
+            aria-label="減らす"
+            className="h-8 w-8 rounded-full border border-ink/15 text-lg font-black text-ink-soft"
+          >
+            −
+          </button>
+          <span className="w-5 text-center text-sm font-black text-ink">{qty}</span>
+          <button
+            type="button"
+            onClick={onAdd}
+            aria-label="増やす"
+            className="h-8 w-8 rounded-full bg-brand text-lg font-black text-white"
+          >
+            ＋
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={onAdd} className="btn-ghost shrink-0 px-3 py-2 text-xs">
+          ＋ カート
+        </button>
+      )}
+    </li>
   );
 }

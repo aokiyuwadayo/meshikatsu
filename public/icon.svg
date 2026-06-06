@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="メシ活アイコン">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2FBF5B"/>
+      <stop offset="1" stop-color="#1F9D55"/>
+    </linearGradient>
+  </defs>
+  <!-- 全面背景（マスカブル安全領域を確保） -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- 後光 -->
+  <circle cx="256" cy="268" r="150" fill="#ffffff" opacity="0.12"/>
+  <!-- 体（卵） -->
+  <ellipse cx="256" cy="300" rx="118" ry="126" fill="#FFF1DD" stroke="#F2D9B6" stroke-width="8"/>
+  <!-- コック帽 -->
+  <g fill="#ffffff" stroke="#F2D9B6" stroke-width="6">
+    <ellipse cx="256" cy="150" rx="70" ry="44"/>
+    <circle cx="206" cy="160" r="34"/>
+    <circle cx="306" cy="160" r="34"/>
+    <rect x="196" y="178" width="120" height="34" rx="12"/>
+  </g>
+  <rect x="196" y="196" width="120" height="12" fill="#2FBF5B" opacity="0.85"/>
+  <!-- 顔 -->
+  <circle cx="222" cy="296" r="13" fill="#3A2A1B"/>
+  <circle cx="290" cy="296" r="13" fill="#3A2A1B"/>
+  <circle cx="226" cy="291" r="4" fill="#fff"/>
+  <circle cx="294" cy="291" r="4" fill="#fff"/>
+  <circle cx="198" cy="324" r="12" fill="#FF9E6B" opacity="0.7"/>
+  <circle cx="314" cy="324" r="12" fill="#FF9E6B" opacity="0.7"/>
+  <path d="M226 330 q30 28 60 0" fill="none" stroke="#3A2A1B" stroke-width="8" stroke-linecap="round"/>
+</svg>

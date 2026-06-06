@@ -20,6 +20,7 @@ export interface FoodItem {
   expiryDate: string; // ISO 8601 形式 (例: "2026-06-10")
   category: FoodCategory;
   addedAt: string; // ISO 8601 形式
+  price?: number; // 取得価格（円）。節約額の概算に使う。レシート読取時に入る
 }
 
 /** 料理記録（1回の自炊） */
@@ -35,8 +36,38 @@ export interface CookingLog {
 export interface UserProgress {
   level: number;
   totalXP: number;
-  stamps: number;
+  stamps: number; // これまでに獲得した総スタンプ数（料理5回ごとに+1）
   cookingCount: number; // 料理した回数（5回ごとにスタンプ1枚）
+  redeemedStamps?: number; // 特典交換で消費したスタンプ数（利用可能 = stamps - redeemedStamps）
+}
+
+/** ロス削減イベント（食材を救った／捨てた の1件） */
+export type LossEventType = "saved" | "wasted";
+export interface LossEvent {
+  id: string;
+  type: LossEventType; // saved=期限内に使い切った / wasted=期限切れで処分
+  itemName: string;
+  estimatedYen: number; // 救った／無駄にした金額の概算
+  at: string; // ISO 8601 形式
+}
+
+/** 特典（スタンプ交換のカタログ。静的データ） */
+export interface Reward {
+  id: string;
+  name: string;
+  cost: number; // 必要スタンプ数
+  partner: string; // 提携先
+  emoji: string;
+}
+
+/** 特典交換の履歴1件 */
+export interface Redemption {
+  id: string;
+  rewardId: string;
+  rewardName: string;
+  code: string; // 提示用クーポンコード
+  cost: number;
+  at: string; // ISO 8601 形式
 }
 
 /** キャラクター成長ステージ */
@@ -59,33 +90,37 @@ export interface ReceiptItem {
 /** 消費期限の緊急度（色分け用） */
 export type ExpiryStatus = "urgent" | "warn" | "safe" | "expired";
 
-// ============================================================
-// 折衷C：¥390 商品販売 ＋ 食べる予定（食習慣管理）
-// ============================================================
-
-/** 販売商品カテゴリ（冷凍中心で日持ち） */
-export type ProductCategory = "frozen-meal" | "pasta" | "bread" | "side";
-
-/** ¥390 で届く商品（自社提供・冷凍中心） */
-export interface Product {
+/** 補充ショップの商品（折衷案: HTML版の¥390商品をツールに統合） */
+export interface ShopProduct {
   id: string;
   name: string;
-  price: number; // 基本 ¥390
+  price: number; // 円（基本 ¥390）
   emoji: string;
-  category: ProductCategory;
-  description: string;
-  /** この商品が「あと一品」を埋めるシーン・食材タグ */
-  tags: string[];
-  /** 冷凍での日持ち日数 */
-  daysToKeep: number;
+  category: FoodCategory;
+  expiryDays: number; // 購入後の標準消費期限（日数）
+  tag?: string; // "冷凍" など
 }
 
-/** 食べる予定（A の「いつ・どれだけ食べるか」管理） */
-export interface PlannedMeal {
+/** 注文（補充。デモ＝実決済なし） */
+export interface OrderLine {
+  productId: string;
+  name: string;
+  price: number;
+  qty: number;
+}
+export interface Order {
   id: string;
-  productName: string;
-  emoji: string;
-  eatDate: string; // ISO 8601 形式 (YYYY-MM-DD)
-  done: boolean; // 予定どおり食べたら true
-  orderedAt: string; // ISO 8601 形式
+  lines: OrderLine[];
+  total: number;
+  at: string; // ISO 8601 形式
+}
+
+/** 自作レシピ（ユーザーが追加・共有できる） */
+export interface MyRecipe {
+  id: string;
+  name: string;
+  ingredients: string[];
+  steps: string[];
+  description?: string;
+  createdAt: string; // ISO 8601 形式
 }

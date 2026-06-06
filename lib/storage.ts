@@ -3,16 +3,25 @@
 // SSR 中は window が無いので必ずガードする
 // ============================================================
 
-import type { FoodItem, CookingLog, UserProgress, PlannedMeal } from "@/types";
+import type {
+  FoodItem,
+  CookingLog,
+  UserProgress,
+  LossEvent,
+  Redemption,
+  Order,
+  MyRecipe,
+} from "@/types";
 
 const KEYS = {
   fridge: "meshikatsu:fridge",
   logs: "meshikatsu:logs",
   progress: "meshikatsu:progress",
-  plans: "meshikatsu:plans",
-  ecoActions: "meshikatsu:ecoActions", // ロス削減アクションの日付ログ
-  zeroLossAwards: "meshikatsu:zeroLossAwards", // 付与済みの「週」キー
-  onboarded: "meshikatsu:onboarded", // 初回オンボーディング完了フラグ
+  lossEvents: "meshikatsu:lossEvents",
+  redemptions: "meshikatsu:redemptions",
+  zeroLossWeeks: "meshikatsu:zeroLossWeeks", // 付与済みの「ロスゼロ週間」数
+  orders: "meshikatsu:orders",
+  myRecipes: "meshikatsu:myRecipes",
 } as const;
 
 const isBrowser = () => typeof window !== "undefined";
@@ -82,59 +91,64 @@ const DEFAULT_PROGRESS: UserProgress = {
 };
 
 export function getProgress(): UserProgress {
-  return read<UserProgress>(KEYS.progress, DEFAULT_PROGRESS);
+  // 既存データに無い新フィールド（redeemedStamps 等）はデフォルトで補完する
+  return { ...DEFAULT_PROGRESS, ...read<Partial<UserProgress>>(KEYS.progress, {}) };
 }
 export function saveProgress(progress: UserProgress): void {
   write(KEYS.progress, progress);
 }
 
-// ---- 食べる予定（PlannedMeal[]・折衷C） ----
-export function getPlans(): PlannedMeal[] {
-  return read<PlannedMeal[]>(KEYS.plans, []);
+// ---- ロス削減イベント（LossEvent[]） ----
+export function getLossEvents(): LossEvent[] {
+  return read<LossEvent[]>(KEYS.lossEvents, []);
 }
-export function savePlans(plans: PlannedMeal[]): void {
-  write(KEYS.plans, plans);
-}
-export function addPlan(plan: PlannedMeal): PlannedMeal[] {
-  const next = [...getPlans(), plan];
-  savePlans(next);
-  return next;
-}
-/** 予定の done を更新（予定どおり食べた等） */
-export function updatePlan(id: string, patch: Partial<PlannedMeal>): PlannedMeal[] {
-  const next = getPlans().map((p) => (p.id === id ? { ...p, ...patch } : p));
-  savePlans(next);
-  return next;
-}
-export function removePlan(id: string): PlannedMeal[] {
-  const next = getPlans().filter((p) => p.id !== id);
-  savePlans(next);
+export function addLossEvent(event: LossEvent): LossEvent[] {
+  const next = [event, ...getLossEvents()];
+  write(KEYS.lossEvents, next);
   return next;
 }
 
-// ---- ロス削減アクションのログ（ロスゼロ週間の判定用） ----
-export function getEcoActions(): string[] {
-  return read<string[]>(KEYS.ecoActions, []);
+// ---- 特典交換の履歴（Redemption[]） ----
+export function getRedemptions(): Redemption[] {
+  return read<Redemption[]>(KEYS.redemptions, []);
 }
-/** ロス削減アクション（期限内に使った／予定どおり食べた）を今日付で記録 */
-export function recordEcoAction(dateISO: string): void {
-  write(KEYS.ecoActions, [...getEcoActions(), dateISO]);
-}
-
-// ---- ロスゼロ週間ボーナスの付与済み週キー ----
-export function getZeroLossAwards(): string[] {
-  return read<string[]>(KEYS.zeroLossAwards, []);
-}
-export function addZeroLossAward(weekKey: string): void {
-  write(KEYS.zeroLossAwards, [...getZeroLossAwards(), weekKey]);
+export function addRedemption(r: Redemption): Redemption[] {
+  const next = [r, ...getRedemptions()];
+  write(KEYS.redemptions, next);
+  return next;
 }
 
-// ---- 初回オンボーディング ----
-export function isOnboarded(): boolean {
-  return read<boolean>(KEYS.onboarded, false);
+// ---- 注文履歴（Order[]・補充） ----
+export function getOrders(): Order[] {
+  return read<Order[]>(KEYS.orders, []);
 }
-export function setOnboarded(): void {
-  write(KEYS.onboarded, true);
+export function addOrder(order: Order): Order[] {
+  const next = [order, ...getOrders()];
+  write(KEYS.orders, next);
+  return next;
+}
+
+// ---- 自作レシピ（MyRecipe[]） ----
+export function getMyRecipes(): MyRecipe[] {
+  return read<MyRecipe[]>(KEYS.myRecipes, []);
+}
+export function addMyRecipe(r: MyRecipe): MyRecipe[] {
+  const next = [r, ...getMyRecipes()];
+  write(KEYS.myRecipes, next);
+  return next;
+}
+export function removeMyRecipe(id: string): MyRecipe[] {
+  const next = getMyRecipes().filter((r) => r.id !== id);
+  write(KEYS.myRecipes, next);
+  return next;
+}
+
+// ---- ロスゼロ週間の付与済みカウンタ ----
+export function getZeroLossWeeks(): number {
+  return read<number>(KEYS.zeroLossWeeks, 0);
+}
+export function setZeroLossWeeks(n: number): void {
+  write(KEYS.zeroLossWeeks, n);
 }
 
 /** デモ用：全データをリセット */
