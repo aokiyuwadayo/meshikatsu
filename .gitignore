@@ -1,19 +1,35 @@
-# OS
+# ===== Next.js / Node =====
+/node_modules
+/.pnp
+.pnp.js
+/.next/
+/out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== Env =====
+.env*.local
+.env
+
+# ===== Vercel =====
+.vercel
+
+# ===== OS =====
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# Node
-node_modules/
-npm-debug.log*
-
-# Logs / temp
+# ===== Logs / temp =====
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 .cache/
 
-# Editor
+# ===== Editor =====
 .vscode/
 .idea/
+*.pem
 
-# Claude local-only settings (team-shared launch.json stays tracked)
+# ===== Claude (team-shared launch.json stays tracked) =====
 .claude/settings.local.json
