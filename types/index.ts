@@ -114,3 +114,13 @@ export interface Order {
   total: number;
   at: string; // ISO 8601 形式
 }
+
+/** 自作レシピ（ユーザーが追加・共有できる） */
+export interface MyRecipe {
+  id: string;
+  name: string;
+  ingredients: string[];
+  steps: string[];
+  description?: string;
+  createdAt: string; // ISO 8601 形式
+}

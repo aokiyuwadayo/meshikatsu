@@ -10,6 +10,7 @@ import type {
   LossEvent,
   Redemption,
   Order,
+  MyRecipe,
 } from "@/types";
 
 const KEYS = {
@@ -20,6 +21,7 @@ const KEYS = {
   redemptions: "meshikatsu:redemptions",
   zeroLossWeeks: "meshikatsu:zeroLossWeeks", // 付与済みの「ロスゼロ週間」数
   orders: "meshikatsu:orders",
+  myRecipes: "meshikatsu:myRecipes",
 } as const;
 
 const isBrowser = () => typeof window !== "undefined";
@@ -123,6 +125,21 @@ export function getOrders(): Order[] {
 export function addOrder(order: Order): Order[] {
   const next = [order, ...getOrders()];
   write(KEYS.orders, next);
+  return next;
+}
+
+// ---- 自作レシピ（MyRecipe[]） ----
+export function getMyRecipes(): MyRecipe[] {
+  return read<MyRecipe[]>(KEYS.myRecipes, []);
+}
+export function addMyRecipe(r: MyRecipe): MyRecipe[] {
+  const next = [r, ...getMyRecipes()];
+  write(KEYS.myRecipes, next);
+  return next;
+}
+export function removeMyRecipe(id: string): MyRecipe[] {
+  const next = getMyRecipes().filter((r) => r.id !== id);
+  write(KEYS.myRecipes, next);
   return next;
 }
 

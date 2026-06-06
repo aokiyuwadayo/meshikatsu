@@ -14,6 +14,7 @@ import { isEnabled, notifyExpiring } from "@/lib/notify";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
 import NotifyToggle from "@/components/NotifyToggle";
+import RecipeShareButton from "@/components/RecipeShareButton";
 import type { FoodItem, UserProgress } from "@/types";
 
 // storage の DEFAULT_PROGRESS 相当（SSR と初期描画の整合用）
@@ -128,17 +129,33 @@ export default function HomePage() {
         <NotifyToggle items={fridge} />
       </section>
 
-      {/* 旬の料理提案（機能③）: 冷蔵庫の食材 × 季節 */}
-      {recipes.length > 0 && (
-        <section className="mt-6">
-          <h2 className="section-title">🍳 今ある食材で作れる旬レシピ</h2>
+      {/* 旬の料理提案（機能③）＋ レシピ共有 */}
+      <section className="mt-6">
+        <h2 className="section-title">
+          🍳 旬レシピ
+          <Link href="/recipe/new" className="ml-auto text-xs font-bold text-accent">
+            ＋ 作って共有
+          </Link>
+        </h2>
+        {recipes.length > 0 ? (
           <ul className="space-y-2">
             {recipes.map((r) => (
               <li
                 key={r.name}
                 className="rounded-2xl border border-brand/20 bg-brand-light/60 p-4"
               >
-                <p className="text-sm font-black text-ink">{r.name}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-black text-ink">{r.name}</p>
+                  <RecipeShareButton
+                    recipe={{
+                      name: r.name,
+                      ingredients: r.ingredients,
+                      steps: r.steps ?? [],
+                      description: r.description,
+                    }}
+                    variant="chip"
+                  />
+                </div>
                 <p className="mt-0.5 text-xs text-ink-soft">{r.description}</p>
                 <p className="mt-1.5 text-xs font-bold text-brand-dark">
                   <span aria-hidden>✓ </span>使える食材: {r.matched.join("・")}
@@ -146,8 +163,12 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <p className="card-soft text-sm text-ink-soft">
+            冷蔵庫に食材を入れると、使い切れる旬レシピを提案します。
+          </p>
+        )}
+      </section>
 
       {/* 補充の提案（折衷案）: 在庫が少ない or 期限が近いとき */}
       {(fridgeCount < 5 || alerts.length > 0) && (
