@@ -14,8 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
-        <div className="app-shell mx-auto min-h-screen max-w-md bg-white">
+      <body className="bg-cream">
+        {/* デスクトップでは中央のスマホ幅カラム。背景は温かいグラデーション */}
+        <div className="app-shell relative mx-auto min-h-screen max-w-md bg-gradient-to-b from-accent-light/40 via-cream to-cream shadow-xl shadow-ink/5">
           {children}
         </div>
         <Navigation />

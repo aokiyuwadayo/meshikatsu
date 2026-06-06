@@ -16,14 +16,14 @@ export default function XPBar({ totalXP, showLabel = true }: XPBarProps) {
 
   return (
     <div className="w-full">
-      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="h-3.5 w-full overflow-hidden rounded-full bg-ink/10">
         <div
-          className="h-full rounded-full bg-brand transition-all duration-500 ease-out"
-          style={{ width: `${Math.round(ratio * 100)}%` }}
+          className="h-full rounded-full bg-gradient-to-r from-brand to-accent transition-all duration-700 ease-out"
+          style={{ width: `${Math.max(4, Math.round(ratio * 100))}%` }}
         />
       </div>
       {showLabel && (
-        <div className="mt-1 flex justify-between text-xs text-slate-500">
+        <div className="mt-1.5 flex justify-between text-xs font-semibold text-ink-soft">
           <span>
             {into} / {XP_PER_LEVEL} XP
           </span>
