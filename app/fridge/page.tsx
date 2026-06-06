@@ -3,8 +3,16 @@
 // 担当: エンジニアB（冷蔵庫管理 /fridge）
 // 食材の在庫一覧（期限が近い順・色分け）と手動の追加・削除。
 import { useEffect, useState } from "react";
-import { getFridge, addFoodItem, removeFoodItem, genId } from "@/lib/storage";
+import {
+  getFridge,
+  addFoodItem,
+  removeFoodItem,
+  genId,
+  getProgress,
+  saveProgress,
+} from "@/lib/storage";
 import { expiryStatus, statusClasses, statusLabel, sortByExpiry } from "@/lib/expiry";
+import { applyXP, XP_REWARDS } from "@/lib/xp";
 import type { FoodItem, FoodCategory } from "@/types";
 
 // カテゴリのセレクト用ラベル（型 FoodCategory に厳密に対応）
@@ -25,6 +33,9 @@ export default function FridgePage() {
   const [unit, setUnit] = useState("個");
   const [category, setCategory] = useState<FoodCategory>("vegetable");
   const [expiryDate, setExpiryDate] = useState("");
+
+  // 「使い切り」XP獲得時の一時メッセージ
+  const [toast, setToast] = useState<string | null>(null);
 
   // localStorage 読み出しは useEffect 内（SSR/ハイドレーション不整合を避ける）
   useEffect(() => {
@@ -60,12 +71,37 @@ export default function FridgePage() {
     setItems(removeFoodItem(id));
   }
 
+  // 「使った」: 期限内に使い切れたら +100XP ボーナス（機能④の使い切りボーナス）
+  function handleUse(item: FoodItem) {
+    const inTime = expiryStatus(item.expiryDate) !== "expired";
+    setItems(removeFoodItem(item.id));
+    if (inTime) {
+      saveProgress(applyXP(getProgress(), XP_REWARDS.useBeforeExpiry));
+      showToast(`期限内に使い切った！ +${XP_REWARDS.useBeforeExpiry} XP 🎉`);
+    } else {
+      showToast(`${item.name}を片付けました`);
+    }
+  }
+
+  function showToast(msg: string) {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 2200);
+  }
+
   return (
     <main className="px-4 py-6">
       <h1 className="text-xl font-bold text-slate-800">冷蔵庫</h1>
       <p className="mt-1 text-sm text-slate-500">
-        消費期限が近い食材から順に表示しています。
+        消費期限が近い食材から順に表示しています。期限内に「使った」で +
+        {XP_REWARDS.useBeforeExpiry} XP！
       </p>
+
+      {/* 使い切りXPのトースト */}
+      {toast && (
+        <div className="fixed inset-x-0 top-4 z-50 mx-auto w-fit max-w-[90%] rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-lg">
+          {toast}
+        </div>
+      )}
 
       {/* 手動追加フォーム */}
       <form
@@ -173,14 +209,24 @@ export default function FridgePage() {
                     {item.unit} ・ 期限 {item.expiryDate}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemove(item.id)}
-                  aria-label={`${item.name}を削除`}
-                  className="shrink-0 rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
-                >
-                  削除
-                </button>
+                <div className="flex shrink-0 flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleUse(item)}
+                    aria-label={`${item.name}を使った`}
+                    className="rounded-lg bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark"
+                  >
+                    使った
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.id)}
+                    aria-label={`${item.name}を削除`}
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+                  >
+                    削除
+                  </button>
+                </div>
               </li>
             );
           })}
