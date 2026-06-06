@@ -1,10 +1,27 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import Onboarding from "@/components/Onboarding";
 
 export const metadata: Metadata = {
   title: "メシ活 — 食品ロスゼロアプリ",
   description: "一人暮らし大学生の食品ロスをゼロにする、ゲーム感覚の食品管理アプリ",
+  applicationName: "メシ活",
+  appleWebApp: {
+    capable: true,
+    title: "メシ活",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2FBF5B",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -20,6 +37,8 @@ export default function RootLayout({
           {children}
         </div>
         <Navigation />
+        {/* 初回起動時のチュートリアル（localStorage フラグで一度だけ） */}
+        <Onboarding />
       </body>
     </html>
   );

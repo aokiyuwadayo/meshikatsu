@@ -187,6 +187,15 @@ export default function HomePage() {
           >
             全データをリセット
           </button>
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new Event("meshikatsu:open-onboarding"))
+            }
+            className="rounded-xl border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink-soft hover:bg-cream"
+          >
+            チュートリアルを見る
+          </button>
         </div>
       </section>
     </main>
