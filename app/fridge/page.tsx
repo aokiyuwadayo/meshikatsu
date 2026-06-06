@@ -10,9 +10,17 @@ import {
   genId,
   getProgress,
   saveProgress,
+  addLossEvent,
+  getZeroLossWeeks,
+  setZeroLossWeeks,
 } from "@/lib/storage";
 import { expiryStatus, statusClasses, statusLabel, sortByExpiry } from "@/lib/expiry";
 import { applyXP, XP_REWARDS, stageFromLevel } from "@/lib/xp";
+import {
+  estimatedYen,
+  computeLossStats,
+  newZeroLossWeeks,
+} from "@/lib/loss";
 import Toast from "@/components/Toast";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
 import type { FoodItem, FoodCategory } from "@/types";
@@ -80,25 +88,59 @@ export default function FridgePage() {
     setItems(removeFoodItem(id));
   }
 
-  // 「使った」: 期限内に使い切れたら +100XP ボーナス（機能④の使い切りボーナス）
+  /** 期限内に使い切れたら +100XP ボーナス（機能④）＋ロス削減「救った」を記録 */
   function handleUse(item: FoodItem) {
-    const inTime = expiryStatus(item.expiryDate) !== "expired";
     setItems(removeFoodItem(item.id));
-    if (inTime) {
-      const before = getProgress();
-      const after = applyXP(before, XP_REWARDS.useBeforeExpiry);
-      saveProgress(after);
-      setToast(`期限内に使い切った！ +${XP_REWARDS.useBeforeExpiry} XP 🎉`);
-      if (after.level > before.level) {
-        setLevelUp({
-          level: after.level,
-          newStage:
-            stageFromLevel(after.level).stage !== stageFromLevel(before.level).stage,
-        });
-      }
-    } else {
-      setToast(`${item.name}を片付けました`);
+
+    const before = getProgress();
+    // ロス削減イベント記録: 救った（節約額は実価格 or 概算）
+    const events = addLossEvent({
+      id: genId(),
+      type: "saved",
+      itemName: item.name,
+      estimatedYen: estimatedYen(item),
+      at: new Date().toISOString(),
+    });
+
+    // 使い切りボーナス +100XP
+    let after = applyXP(before, XP_REWARDS.useBeforeExpiry);
+
+    // ロスゼロ週間ボーナス: 7日連続ロスゼロを新たに達成したら +500XP
+    const stats = computeLossStats(events);
+    const award = newZeroLossWeeks(stats.zeroLossWeeks, getZeroLossWeeks());
+    let weekBonus = false;
+    if (award > 0) {
+      after = applyXP(after, XP_REWARDS.zeroLossWeek * award);
+      setZeroLossWeeks(stats.zeroLossWeeks);
+      weekBonus = true;
     }
+    saveProgress(after);
+
+    setToast(
+      weekBonus
+        ? `ロスゼロ週間達成！ +${XP_REWARDS.zeroLossWeek} XP 🔥`
+        : `期限内に使い切った！ +${XP_REWARDS.useBeforeExpiry} XP 🎉`
+    );
+    if (after.level > before.level) {
+      setLevelUp({
+        level: after.level,
+        newStage:
+          stageFromLevel(after.level).stage !== stageFromLevel(before.level).stage,
+      });
+    }
+  }
+
+  /** 期限切れで処分: ロス削減「捨てた」を記録（XPなし） */
+  function handleDiscard(item: FoodItem) {
+    setItems(removeFoodItem(item.id));
+    addLossEvent({
+      id: genId(),
+      type: "wasted",
+      itemName: item.name,
+      estimatedYen: estimatedYen(item),
+      at: new Date().toISOString(),
+    });
+    setToast(`${item.name}を処分しました。次は早めに使おう…`);
   }
 
   return (
@@ -240,14 +282,25 @@ export default function FridgePage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleUse(item)}
-                    aria-label={`${item.name}を使った`}
-                    className="rounded-xl bg-brand px-3 py-1 text-xs font-bold text-white hover:bg-brand-dark"
-                  >
-                    使った
-                  </button>
+                  {status === "expired" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDiscard(item)}
+                      aria-label={`${item.name}を処分`}
+                      className="rounded-xl bg-urgent px-3 py-1 text-xs font-bold text-white hover:opacity-90"
+                    >
+                      処分
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleUse(item)}
+                      aria-label={`${item.name}を使った`}
+                      className="rounded-xl bg-brand px-3 py-1 text-xs font-bold text-white hover:bg-brand-dark"
+                    >
+                      使った
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleRemove(item.id)}

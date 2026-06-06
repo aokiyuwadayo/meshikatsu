@@ -20,6 +20,7 @@ export interface FoodItem {
   expiryDate: string; // ISO 8601 形式 (例: "2026-06-10")
   category: FoodCategory;
   addedAt: string; // ISO 8601 形式
+  price?: number; // 取得価格（円）。節約額の概算に使う。レシート読取時に入る
 }
 
 /** 料理記録（1回の自炊） */
@@ -35,8 +36,38 @@ export interface CookingLog {
 export interface UserProgress {
   level: number;
   totalXP: number;
-  stamps: number;
+  stamps: number; // これまでに獲得した総スタンプ数（料理5回ごとに+1）
   cookingCount: number; // 料理した回数（5回ごとにスタンプ1枚）
+  redeemedStamps?: number; // 特典交換で消費したスタンプ数（利用可能 = stamps - redeemedStamps）
+}
+
+/** ロス削減イベント（食材を救った／捨てた の1件） */
+export type LossEventType = "saved" | "wasted";
+export interface LossEvent {
+  id: string;
+  type: LossEventType; // saved=期限内に使い切った / wasted=期限切れで処分
+  itemName: string;
+  estimatedYen: number; // 救った／無駄にした金額の概算
+  at: string; // ISO 8601 形式
+}
+
+/** 特典（スタンプ交換のカタログ。静的データ） */
+export interface Reward {
+  id: string;
+  name: string;
+  cost: number; // 必要スタンプ数
+  partner: string; // 提携先
+  emoji: string;
+}
+
+/** 特典交換の履歴1件 */
+export interface Redemption {
+  id: string;
+  rewardId: string;
+  rewardName: string;
+  code: string; // 提示用クーポンコード
+  cost: number;
+  at: string; // ISO 8601 形式
 }
 
 /** キャラクター成長ステージ */

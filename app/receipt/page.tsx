@@ -130,6 +130,7 @@ export default function ReceiptPage() {
         expiryDate: d.expiryDate,
         category: d.category,
         addedAt: new Date().toISOString(),
+        price: d.price, // 節約額の概算に使う
       };
       addFoodItem(food);
       saveProgress(applyXP(getProgress(), XP_REWARDS.receipt));

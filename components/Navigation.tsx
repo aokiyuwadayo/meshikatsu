@@ -7,7 +7,8 @@ const TABS = [
   { href: "/", label: "ホーム", icon: "🏠" },
   { href: "/fridge", label: "冷蔵庫", icon: "🧊" },
   { href: "/receipt", label: "レシート", icon: "🧾" },
-  { href: "/cook", label: "料理記録", icon: "🍳" },
+  { href: "/cook", label: "料理", icon: "🍳" },
+  { href: "/stats", label: "実績", icon: "📊" },
   { href: "/character", label: "キャラ", icon: "⭐" },
 ];
 

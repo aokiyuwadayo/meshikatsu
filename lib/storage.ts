@@ -3,12 +3,21 @@
 // SSR 中は window が無いので必ずガードする
 // ============================================================
 
-import type { FoodItem, CookingLog, UserProgress } from "@/types";
+import type {
+  FoodItem,
+  CookingLog,
+  UserProgress,
+  LossEvent,
+  Redemption,
+} from "@/types";
 
 const KEYS = {
   fridge: "meshikatsu:fridge",
   logs: "meshikatsu:logs",
   progress: "meshikatsu:progress",
+  lossEvents: "meshikatsu:lossEvents",
+  redemptions: "meshikatsu:redemptions",
+  zeroLossWeeks: "meshikatsu:zeroLossWeeks", // 付与済みの「ロスゼロ週間」数
 } as const;
 
 const isBrowser = () => typeof window !== "undefined";
@@ -78,10 +87,39 @@ const DEFAULT_PROGRESS: UserProgress = {
 };
 
 export function getProgress(): UserProgress {
-  return read<UserProgress>(KEYS.progress, DEFAULT_PROGRESS);
+  // 既存データに無い新フィールド（redeemedStamps 等）はデフォルトで補完する
+  return { ...DEFAULT_PROGRESS, ...read<Partial<UserProgress>>(KEYS.progress, {}) };
 }
 export function saveProgress(progress: UserProgress): void {
   write(KEYS.progress, progress);
+}
+
+// ---- ロス削減イベント（LossEvent[]） ----
+export function getLossEvents(): LossEvent[] {
+  return read<LossEvent[]>(KEYS.lossEvents, []);
+}
+export function addLossEvent(event: LossEvent): LossEvent[] {
+  const next = [event, ...getLossEvents()];
+  write(KEYS.lossEvents, next);
+  return next;
+}
+
+// ---- 特典交換の履歴（Redemption[]） ----
+export function getRedemptions(): Redemption[] {
+  return read<Redemption[]>(KEYS.redemptions, []);
+}
+export function addRedemption(r: Redemption): Redemption[] {
+  const next = [r, ...getRedemptions()];
+  write(KEYS.redemptions, next);
+  return next;
+}
+
+// ---- ロスゼロ週間の付与済みカウンタ ----
+export function getZeroLossWeeks(): number {
+  return read<number>(KEYS.zeroLossWeeks, 0);
+}
+export function setZeroLossWeeks(n: number): void {
+  write(KEYS.zeroLossWeeks, n);
 }
 
 /** デモ用：全データをリセット */
