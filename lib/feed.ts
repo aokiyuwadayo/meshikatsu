@@ -136,8 +136,8 @@ export async function loadFeed(): Promise<{ posts: FeedPost[]; remote: boolean }
   const { FEED_REMOTE, fetchRemotePosts } = await import("@/lib/posts");
   if (FEED_REMOTE) {
     try {
-      const { getNickname } = await import("@/lib/profile");
-      const me = getNickname();
+      const { getClientName } = await import("@/lib/profile");
+      const me = getClientName();
       const remote = await fetchRemotePosts();
       const posts = remote
         .map((p) => ({ ...p, isSelf: Boolean(me) && p.userName === me }))

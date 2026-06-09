@@ -1,13 +1,12 @@
 "use client";
 
-// コミュニティフィード（みんなの食ログ）
-// Supabase 設定時は「本物の共有フィード」（全ユーザーの投稿がリアルに流れる）。
-// 未設定時はサンプル投稿＋自分のローカル記録にフォールバックする。
+// コミュニティフィード（みんなの食ログ）— 閲覧専用。
+// 投稿は中央の「投稿」タブ（/cook）から行い、ここに流れてくる。
+// Supabase 設定時は本物の共有フィード、未設定時はサンプルにフォールバック。
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { loadFeed, timeAgo, KIND_BADGE, type FeedPost } from "@/lib/feed";
-import { getNickname, setNickname } from "@/lib/profile";
-import { FEED_REMOTE, createRemotePost } from "@/lib/posts";
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -15,46 +14,16 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState<Record<string, boolean>>({});
 
-  // 表示名（共有フィードで「誰の投稿か」を出すため）
-  const [name, setName] = useState("");
-  const [draft, setDraft] = useState(""); // 新規投稿の本文
-  const [posting, setPosting] = useState(false);
-
-  async function refresh() {
-    const res = await loadFeed();
-    setPosts(res.posts);
-    setRemote(res.remote);
-    setLoading(false);
-  }
-
   useEffect(() => {
-    setName(getNickname());
-    refresh();
+    loadFeed().then((res) => {
+      setPosts(res.posts);
+      setRemote(res.remote);
+      setLoading(false);
+    });
   }, []);
 
   function toggleLike(id: string) {
     setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
-  }
-
-  function saveName(v: string) {
-    setName(v);
-    setNickname(v);
-  }
-
-  async function submitPost() {
-    const text = draft.trim();
-    if (!text || posting) return;
-    setPosting(true);
-    const ok = await createRemotePost({
-      userName: name.trim() || "ゲスト",
-      text,
-      kind: "cook",
-    });
-    setPosting(false);
-    if (ok) {
-      setDraft("");
-      refresh(); // 投稿後に再読込してフィード先頭に反映
-    }
   }
 
   return (
@@ -63,39 +32,6 @@ export default function FeedPage() {
       <p className="mt-1 text-sm text-slate-500">
         みんなの食ログ。今日もどこかで誰かがロスを減らしてる。
       </p>
-
-      {/* 共有フィードが有効なときだけ「表示名＋投稿」UIを出す */}
-      {FEED_REMOTE && (
-        <section className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-3">
-          <label className="block">
-            <span className="text-[11px] font-bold text-brand">あなたの表示名</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => saveName(e.target.value)}
-              placeholder="例：ゆうわ"
-              maxLength={20}
-              className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
-            />
-          </label>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="いま作ったもの・救った食材をシェア…"
-            rows={2}
-            maxLength={140}
-            className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
-          />
-          <button
-            type="button"
-            onClick={submitPost}
-            disabled={!draft.trim() || posting}
-            className="mt-2 w-full rounded-xl bg-brand py-2 text-sm font-black text-white transition active:scale-95 disabled:opacity-40"
-          >
-            {posting ? "投稿中…" : "みんなに投稿する"}
-          </button>
-        </section>
-      )}
 
       {loading ? (
         <p className="mt-8 text-center text-sm text-slate-400">読み込み中…</p>
@@ -167,8 +103,16 @@ export default function FeedPage() {
         </ul>
       )}
 
+      {/* 投稿導線（中央の投稿タブへ） */}
+      <Link
+        href="/cook"
+        className="mt-6 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-brand/40 bg-brand-light/50 p-3.5 text-sm font-black text-brand"
+      >
+        ＋ 料理を投稿する
+      </Link>
+
       {/* 状態の但し書き */}
-      <p className="mt-6 text-center text-[11px] text-slate-300">
+      <p className="mt-4 text-center text-[11px] text-slate-300">
         {remote
           ? "✓ みんなの投稿がリアルタイムで共有されています"
           : "※ サンプルのコミュニティ投稿を表示中（共有DB未接続）"}
