@@ -63,8 +63,11 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ヒーロー: キャラクター + XPバー + ステータス */}
-      <section className="mt-5 overflow-hidden rounded-4xl bg-gradient-to-br from-brand to-brand-dark p-5 text-white shadow-glow">
+      {/* ヒーロー: キャラクター + XPバー + ステータス（タップでキャラ詳細へ） */}
+      <Link
+        href="/character"
+        className="mt-5 block overflow-hidden rounded-4xl bg-gradient-to-br from-brand to-brand-dark p-5 text-white shadow-glow transition-transform active:scale-[0.99]"
+      >
         <div className="flex items-center gap-4">
           <div className="shrink-0 rounded-3xl bg-white/15 p-2">
             <CharacterDisplay level={progress.level} size="md" />
@@ -92,7 +95,10 @@ export default function HomePage() {
           <Stat label="料理記録" value={`${cookCount}`} unit="回" />
           <Stat label="スタンプ" value={`${progress.stamps}`} unit="個" />
         </div>
-      </section>
+        <p className="mt-3 text-center text-[11px] font-semibold text-white/70">
+          タップでキャラクター詳細 →
+        </p>
+      </Link>
 
       {/* 実績・ロス削減ダッシュボードへ */}
       <section className="mt-3">
