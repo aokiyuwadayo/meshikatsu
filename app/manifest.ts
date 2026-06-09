@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
 
+// 静的書き出し（output: export）では明示が必要
+export const dynamic = "force-static";
+
+const BASE = "/meshikatsu"; // GitHub Pages のサブパス
+
 // PWA マニフェスト（App Router が /manifest.webmanifest として配信）
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -7,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "メシ活",
     description:
       "一人暮らし大学生の食品ロスをゼロにする、ゲーム感覚の食品管理アプリ",
-    start_url: "/",
+    start_url: `${BASE}/`,
     display: "standalone",
     background_color: "#FFF8EF",
     theme_color: "#2FBF5B",
@@ -16,13 +21,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["food", "lifestyle", "productivity"],
     icons: [
       {
-        src: "/icon.svg",
+        src: "/meshikatsu/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "any",
       },
       {
-        src: "/icon.svg",
+        src: "/meshikatsu/icon.svg",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "maskable",

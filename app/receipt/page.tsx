@@ -30,6 +30,15 @@ const CATEGORY_LABELS: Record<ReceiptItem["category"], string> = {
   other: "その他",
 };
 
+// 静的ホスティング（GitHub Pages）ではサーバAPIが使えないため、
+// レシート解析はデモ用モックを返す（実運用でキーを使う場合はサーバ版に戻す）。
+const MOCK_ITEMS: ReceiptItem[] = [
+  { name: "キャベツ", quantity: 1, unit: "個", price: 158, category: "vegetable" },
+  { name: "トマト", quantity: 3, unit: "個", price: 198, category: "vegetable" },
+  { name: "豚こま肉", quantity: 1, unit: "パック", price: 298, category: "meat" },
+  { name: "卵", quantity: 1, unit: "パック", price: 218, category: "dairy" },
+];
+
 export default function ReceiptPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,19 +76,10 @@ export default function ReceiptPage() {
       const dataUrl = await readAsDataUrl(file);
       setPreview(dataUrl);
 
-      const res = await fetch("/api/receipt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: dataUrl }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error ?? "解析に失敗しました");
-      }
-
-      const items: ReceiptItem[] = Array.isArray(data?.items) ? data.items : [];
-      setIsMock(data?.mock === true);
+      // 静的ホスティングではサーバ解析が使えないため、デモ用モックを返す
+      await new Promise((r) => setTimeout(r, 600));
+      const items: ReceiptItem[] = MOCK_ITEMS;
+      setIsMock(true);
 
       if (items.length === 0) {
         setError("レシートから食材を読み取れませんでした。別の画像をお試しください。");
