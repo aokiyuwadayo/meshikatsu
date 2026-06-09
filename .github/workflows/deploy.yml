@@ -27,6 +27,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # 共有フィード用の公開キー（リポジトリ Variables から注入。未設定ならサンプル表示）
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       - name: Disable Jekyll (_next を配信させる)
         run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3

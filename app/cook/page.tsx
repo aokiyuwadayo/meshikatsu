@@ -14,6 +14,8 @@ import {
 } from "@/lib/storage";
 import { applyXP, XP_REWARDS, stageFromLevel } from "@/lib/xp";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
+import { createRemotePost } from "@/lib/posts";
+import { getNickname } from "@/lib/profile";
 import type { CookingLog } from "@/types";
 
 export default function CookPage() {
@@ -58,6 +60,13 @@ export default function CookPage() {
       cookedAt: new Date().toISOString(),
     };
     const nextLogs = addLog(log);
+
+    // 1.5) 共有フィードにも投稿（Supabase 設定時のみ。未設定なら何もしない）
+    void createRemotePost({
+      userName: getNickname() || "ゲスト",
+      text: `「${log.dishName}」を作りました！`,
+      kind: "cook",
+    });
 
     // 2) XP を加算（incrementCooking=true で料理回数+1 → スタンプ再計算）
     const before = getProgress();

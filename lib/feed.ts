@@ -119,11 +119,35 @@ function selfPosts(): FeedPost[] {
   }));
 }
 
-/** フィードを構築（自分＋コミュニティを新しい順に） */
+const byNewest = (a: FeedPost, b: FeedPost) =>
+  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+/** フィードを構築（自分＋サンプルコミュニティを新しい順に）— remote 未設定時のフォールバック */
 export function buildFeed(): FeedPost[] {
-  return [...selfPosts(), ...SAMPLE_COMMUNITY].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return [...selfPosts(), ...SAMPLE_COMMUNITY].sort(byNewest);
+}
+
+/**
+ * 本物の共有フィードを構築。
+ * Supabase 設定済みなら全ユーザーの投稿を取得（自分の投稿は isSelf でハイライト）。
+ * 未設定 or 取得失敗なら、従来のサンプル＋自分のローカル記録にフォールバック。
+ */
+export async function loadFeed(): Promise<{ posts: FeedPost[]; remote: boolean }> {
+  const { FEED_REMOTE, fetchRemotePosts } = await import("@/lib/posts");
+  if (FEED_REMOTE) {
+    try {
+      const { getNickname } = await import("@/lib/profile");
+      const me = getNickname();
+      const remote = await fetchRemotePosts();
+      const posts = remote
+        .map((p) => ({ ...p, isSelf: Boolean(me) && p.userName === me }))
+        .sort(byNewest);
+      return { posts, remote: true };
+    } catch {
+      // 失敗してもフィードを止めない
+    }
+  }
+  return { posts: buildFeed(), remote: false };
 }
 
 /** 相対時刻（◯分前 / ◯時間前 / ◯日前） */
