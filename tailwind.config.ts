@@ -9,28 +9,29 @@ const config: Config = {
     extend: {
       colors: {
         // 消費期限の色分け（赤=緊急 / 黄=注意 / 緑=安全）
-        urgent: "#ef4444",
-        warn: "#f59e0b",
-        safe: "#22c55e",
-        // ブランド：温かみのある緑（HTML版と統一 = 折衷でも色がぶれない）
+        urgent: "#dc2626",
+        warn: "#d97706",
+        safe: "#0F857B",
+        // ブランド：洗練されたティール（青緑）— 清潔感の主役
         brand: {
-          DEFAULT: "#2FBF5B",
-          dark: "#1F9D55",
-          light: "#E9F8EC",
+          DEFAULT: "#0F857B",
+          dark: "#0B6B62",
+          light: "#E3F2F0",
         },
-        // アクセント：CTA・XP・注目
+        // アクセント：テラコッタ（オレンジっぽい茶色）— 差し色・CTA
         accent: {
-          DEFAULT: "#FF7A1A",
-          dark: "#FF6300",
-          light: "#FFE3C2",
+          DEFAULT: "#C2693E",
+          dark: "#A8552F",
+          light: "#F6E7DC",
         },
-        gold: "#F5B301",
-        // 文字色（純黒の代わりに温かい焦茶）
+        gold: "#C2693E",
+        // 文字色：クールなチャコール（焦茶をやめて締まった黒緑寄り）
         ink: {
-          DEFAULT: "#3A2A1B",
-          soft: "#6F6457",
+          DEFAULT: "#17211F",
+          soft: "#5C6764",
         },
-        cream: "#FFF8EF",
+        // 微妙な塗り用のごく淡いニュートラル（背景は白に）
+        cream: "#F2F5F4",
       },
       fontFamily: {
         sans: [
@@ -42,12 +43,13 @@ const config: Config = {
         ],
       },
       borderRadius: {
-        "4xl": "2rem",
+        "4xl": "1.5rem",
       },
       boxShadow: {
-        card: "0 14px 30px -16px rgba(58,42,27,0.28)",
-        pop: "0 10px 0 rgba(58,42,27,0.06)",
-        glow: "0 14px 30px -12px rgba(47,191,91,0.55)",
+        // 清潔感重視：薄く繊細な影に
+        card: "0 1px 2px rgba(23,33,31,0.04), 0 10px 24px -20px rgba(23,33,31,0.20)",
+        pop: "0 1px 0 rgba(23,33,31,0.04)",
+        glow: "0 8px 20px -14px rgba(15,133,123,0.45)",
       },
       keyframes: {
         "xp-pop": {

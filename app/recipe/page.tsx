@@ -176,7 +176,7 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
       ? "bg-brand-light text-brand"
       : recipe.difficulty === "難しい"
       ? "bg-urgent/10 text-urgent"
-      : "bg-slate-100 text-ink-soft";
+      : "bg-cream text-ink-soft";
 
   return (
     <div
@@ -212,12 +212,12 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
 
           {/* スキップ オーバーレイ */}
           <div
-            className="absolute inset-0 flex items-center justify-center rounded-t-3xl bg-slate-400/10 backdrop-blur-[1px] transition-opacity"
+            className="absolute inset-0 flex items-center justify-center rounded-t-3xl bg-ink/10 backdrop-blur-[1px] transition-opacity"
             style={{ opacity: showSkip ? Math.min(1, Math.abs(dragX) / 120) : 0 }}
           >
             <div className="flex flex-col items-center gap-1">
               <span className="text-6xl drop-shadow-lg">⏭️</span>
-              <span className="rounded-full bg-slate-500 px-4 py-1 text-base font-black text-white">
+              <span className="rounded-full bg-ink-soft px-4 py-1 text-base font-black text-white">
                 スキップ
               </span>
             </div>
@@ -232,7 +232,7 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-black ${diffColor}`}>
                 {recipe.difficulty}
               </span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-ink-soft">
+              <span className="rounded-full bg-cream px-2.5 py-0.5 text-xs font-bold text-ink-soft">
                 ⏱ {recipe.time}
               </span>
             </div>
@@ -389,7 +389,7 @@ function SwipeDiscovery() {
             <button
               type="button"
               onClick={handleSkip}
-              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-200 bg-white text-2xl shadow-card active:scale-95 transition-transform"
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-ink/[0.12] bg-white text-2xl shadow-card active:scale-95 transition-transform"
               aria-label="スキップ"
             >
               ⏭️

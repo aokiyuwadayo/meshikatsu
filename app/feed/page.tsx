@@ -27,53 +27,52 @@ export default function FeedPage() {
   }
 
   return (
-    <main className="px-4 py-6">
-      <h1 className="text-xl font-bold text-slate-800">フィード 👥</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        みんなの食ログ。今日もどこかで誰かがロスを減らしてる。
-      </p>
+    <main className="page">
+      <header className="mb-4">
+        <p className="text-xs font-semibold tracking-widest text-brand">FEED</p>
+        <h1 className="page-title">フィード</h1>
+        <p className="page-sub">みんなの食ログ。今日もどこかで誰かがロスを減らしてる。</p>
+      </header>
 
       {loading ? (
-        <p className="mt-8 text-center text-sm text-slate-400">読み込み中…</p>
+        <p className="mt-10 text-center text-sm text-ink-soft">読み込み中…</p>
       ) : (
-        <ul className="mt-5 space-y-3">
+        <ul className="space-y-2.5">
           {posts.map((p) => {
             const isLiked = liked[p.id];
             const likeCount = p.likes + (isLiked ? 1 : 0);
             return (
               <li
                 key={p.id}
-                className={`rounded-2xl border p-4 ${
-                  p.isSelf
-                    ? "border-brand/30 bg-brand/5"
-                    : "border-slate-200 bg-white"
+                className={`rounded-2xl border bg-white p-4 ${
+                  p.isSelf ? "border-brand/30 bg-brand-light/40" : "border-ink/[0.08]"
                 }`}
               >
                 {/* ヘッダー: アバター + 名前 + 時刻 */}
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl" aria-hidden>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl" aria-hidden>
                     {p.avatar}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-800">
+                    <p className="text-sm font-semibold text-ink">
                       {p.userName}
                       {p.isSelf && (
-                        <span className="ml-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        <span className="ml-1.5 rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold text-white">
                           あなた
                         </span>
                       )}
                     </p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-ink-soft/70">
                       {timeAgo(p.createdAt)}
                     </p>
                   </div>
-                  <span className="text-lg" aria-hidden title={p.kind}>
+                  <span className="text-base opacity-70" aria-hidden title={p.kind}>
                     {KIND_BADGE[p.kind]}
                   </span>
                 </div>
 
                 {/* 本文 */}
-                <p className="mt-2 text-sm text-slate-700">{p.text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink">{p.text}</p>
 
                 {/* 写真（あれば） */}
                 {p.photoUrl && (
@@ -81,7 +80,7 @@ export default function FeedPage() {
                   <img
                     src={p.photoUrl}
                     alt=""
-                    className="mt-3 max-h-56 w-full rounded-lg object-cover"
+                    className="mt-3 max-h-56 w-full rounded-xl object-cover"
                   />
                 )}
 
@@ -89,8 +88,8 @@ export default function FeedPage() {
                 <button
                   type="button"
                   onClick={() => toggleLike(p.id)}
-                  className={`mt-3 flex items-center gap-1 text-sm font-semibold transition-colors ${
-                    isLiked ? "text-urgent" : "text-slate-400 hover:text-slate-600"
+                  className={`mt-3 flex items-center gap-1.5 text-sm font-semibold transition-colors ${
+                    isLiked ? "text-accent" : "text-ink-soft/60 hover:text-ink-soft"
                   }`}
                   aria-pressed={isLiked}
                 >
@@ -106,16 +105,16 @@ export default function FeedPage() {
       {/* 投稿導線（中央の投稿タブへ） */}
       <Link
         href="/cook"
-        className="mt-6 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-brand/40 bg-brand-light/50 p-3.5 text-sm font-black text-brand"
+        className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-dashed border-brand/40 bg-brand-light/40 p-3.5 text-sm font-semibold text-brand"
       >
         ＋ 料理を投稿する
       </Link>
 
       {/* 状態の但し書き */}
-      <p className="mt-4 text-center text-[11px] text-slate-300">
+      <p className="mt-4 text-center text-[11px] text-ink-soft/50">
         {remote
-          ? "✓ みんなの投稿がリアルタイムで共有されています"
-          : "※ サンプルのコミュニティ投稿を表示中（共有DB未接続）"}
+          ? "みんなの投稿がリアルタイムで共有されています"
+          : "サンプルのコミュニティ投稿を表示中（共有DB未接続）"}
       </p>
     </main>
   );

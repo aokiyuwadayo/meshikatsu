@@ -32,9 +32,12 @@ export default function HomePage() {
   const [recipes, setRecipes] = useState<RecipeSuggestion[]>([]);
   const [fridgeCount, setFridgeCount] = useState(0);
   const [cookCount, setCookCount] = useState(0);
+  // 開発用パネルは ?demo 付きURLのときだけ表示（通常ユーザーには見せない）
+  const [showDemo, setShowDemo] = useState(false);
 
   // localStorage 読み出しは useEffect 内（ハイドレーション不整合を避ける）
   useEffect(() => {
+    setShowDemo(window.location.search.includes("demo"));
     const items = getFridge();
     setProgress(getProgress());
     setFridge(items);
@@ -235,7 +238,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* デモ用: ワンタップでサンプル投入 / リセット（発表・動作確認用） */}
+      {/* デモ用: ?demo 付きURLのときだけ表示（通常は非表示） */}
+      {showDemo && (
       <section className="mt-10 border-t border-dashed border-ink/15 pt-4">
         <p className="text-xs font-bold text-ink-soft/60">デモ用</p>
         <div className="mt-2 flex gap-2">
@@ -270,6 +274,7 @@ export default function HomePage() {
           </button>
         </div>
       </section>
+      )}
     </main>
   );
 }

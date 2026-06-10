@@ -5,8 +5,9 @@ import Onboarding from "@/components/Onboarding";
 import AdBanner from "@/components/AdBanner";
 
 export const metadata: Metadata = {
-  title: "メシ活 — 食品ロスゼロアプリ",
-  description: "一人暮らし大学生の食品ロスをゼロにする、ゲーム感覚の食品管理アプリ",
+  title: "メシ活 — ひとりの自炊を、みんなで続ける",
+  description:
+    "ひとりの自炊を、みんなで続ける料理SNS。冷蔵庫・レシピ・記録で自炊が楽しく続き、食品ロスも自然と減る。",
   applicationName: "メシ活",
   appleWebApp: {
     capable: true,
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2FBF5B",
+  themeColor: "#0F857B",
   width: "device-width",
   initialScale: 1,
 };
@@ -32,9 +33,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="bg-cream">
-        {/* デスクトップでは中央のスマホ幅カラム。背景は温かいグラデーション */}
-        <div className="app-shell relative mx-auto min-h-screen max-w-md bg-gradient-to-b from-accent-light/40 via-cream to-cream shadow-xl shadow-ink/5">
+      <body className="bg-[#F2F5F4]">
+        {/* デスクトップでは中央のスマホ幅カラム。背景は白でクリーンに */}
+        <div className="app-shell relative mx-auto min-h-screen max-w-md bg-white shadow-xl shadow-ink/5">
           {/* 最上部の横長・小型 広告枠（全画面共通） */}
           <AdBanner />
           {children}
