@@ -170,7 +170,10 @@ export default function ReceiptPage() {
         onClose={() => setLevelUp(null)}
       />
 
-      <h1 className="page-title">🧾 レシート読み取り</h1>
+      <header>
+        <p className="text-xs font-semibold tracking-widest text-brand">SCAN</p>
+        <h1 className="page-title">レシート読み取り</h1>
+      </header>
       <p className="page-sub">
         レシートを撮影すると食材を自動で読み取り、冷蔵庫に追加できます。
       </p>

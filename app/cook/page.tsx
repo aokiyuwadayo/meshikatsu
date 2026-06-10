@@ -134,7 +134,8 @@ export default function CookPage() {
       />
 
       <header className="mb-5">
-        <h1 className="page-title">🍳 料理を記録</h1>
+        <p className="text-xs font-semibold tracking-widest text-brand">COOK</p>
+        <h1 className="page-title">料理を記録</h1>
         <p className="page-sub">作った料理を記録して、キャラクターを育てよう！</p>
       </header>
 

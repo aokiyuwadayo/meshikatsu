@@ -79,7 +79,10 @@ export default function CharacterPage() {
 
   return (
     <main className="page">
-      <h1 className="page-title">⭐ キャラクター</h1>
+      <header>
+        <p className="text-xs font-semibold tracking-widest text-brand">CHARACTER</p>
+        <h1 className="page-title">キャラクター</h1>
+      </header>
 
       {/* レベルと次までのXP */}
       <section className="mt-4 overflow-hidden rounded-4xl bg-gradient-to-b from-brand-light to-white p-6 shadow-card">

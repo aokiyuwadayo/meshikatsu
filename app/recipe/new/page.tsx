@@ -71,7 +71,8 @@ export default function NewRecipePage() {
       <Toast message={toast} onDone={() => setToast(null)} />
 
       <header className="mb-5">
-        <h1 className="page-title">✍️ レシピを作って共有</h1>
+        <p className="text-xs font-semibold tracking-widest text-brand">CREATE</p>
+        <h1 className="page-title">レシピを作って共有</h1>
         <p className="page-sub">作ったレシピはリンクで友だちに渡せます。</p>
       </header>
 

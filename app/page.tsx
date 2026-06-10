@@ -11,6 +11,7 @@ import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/ex
 import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
 import { seedDemo, clearDemo } from "@/lib/seed";
 import { isEnabled, notifyExpiring } from "@/lib/notify";
+import { CATEGORY_ICON } from "@/lib/foodIcons";
 import { isMaxLevel, levelProgressRatio, xpToNextLevel } from "@/lib/xp";
 import { getClientName, setClientName } from "@/lib/profile";
 import CharacterDisplay from "@/components/CharacterDisplay";
@@ -59,17 +60,12 @@ export default function HomePage() {
 
   return (
     <main className="page">
-      <header className="flex items-end justify-between">
-        <div>
-          <p className="text-xs font-bold tracking-widest text-accent">
-            MESHIKATSU
-          </p>
-          <h1 className="page-title">メシ活</h1>
-          <p className="page-sub">ひとりの自炊を、みんなで続ける。</p>
-        </div>
-        <div className="text-4xl" aria-hidden>
-          🍱
-        </div>
+      <header>
+        <p className="text-xs font-semibold tracking-widest text-brand">
+          MESHIKATSU
+        </p>
+        <h1 className="page-title">メシ活</h1>
+        <p className="page-sub">ひとりの自炊を、みんなで続ける。</p>
       </header>
 
       {/* ヒーロー: キャラクター + XPバー + ステータス（タップでキャラ詳細へ） */}
@@ -148,7 +144,7 @@ export default function HomePage() {
                   className="flex items-center justify-between rounded-2xl border border-black/5 bg-white p-3.5 shadow-card"
                 >
                   <span className="text-sm font-semibold text-ink">
-                    <span aria-hidden>🥬 </span>
+                    <span aria-hidden>{CATEGORY_ICON[item.category]} </span>
                     {item.name}
                   </span>
                   <span className={`chip ${statusClasses(status)}`}>

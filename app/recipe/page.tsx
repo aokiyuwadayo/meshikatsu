@@ -52,7 +52,7 @@ function RecipeViewer({ recipe }: { recipe: SharedRecipe | null }) {
 
   return (
     <main className="page">
-      <p className="text-xs font-bold tracking-widest text-accent">RECIPE</p>
+      <p className="text-xs font-semibold tracking-widest text-brand">RECIPE</p>
       <h1 className="page-title">{recipe.name}</h1>
       {recipe.description && <p className="page-sub">{recipe.description}</p>}
 
@@ -337,8 +337,8 @@ function SwipeDiscovery() {
       )}
 
       <header className="mb-4">
-        <p className="text-xs font-bold tracking-widest text-accent">DISCOVER</p>
-        <h1 className="page-title">📖 レシピ発見</h1>
+        <p className="text-xs font-semibold tracking-widest text-brand">DISCOVER</p>
+        <h1 className="page-title">レシピ発見</h1>
         <p className="page-sub">左スワイプで保存、右スワイプでスキップ</p>
       </header>
 

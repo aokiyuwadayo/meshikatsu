@@ -24,20 +24,10 @@ import {
 } from "@/lib/loss";
 import Toast from "@/components/Toast";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
+import { CATEGORY_OPTIONS, CATEGORY_ICON } from "@/lib/foodIcons";
 import type { FoodItem, FoodCategory } from "@/types";
 
-// カテゴリのセレクト用ラベル＆アイコン（型 FoodCategory に厳密に対応）
-const CATEGORY_OPTIONS: { value: FoodCategory; label: string; icon: string }[] = [
-  { value: "vegetable", label: "野菜", icon: "🥬" },
-  { value: "meat", label: "肉・魚", icon: "🍖" },
-  { value: "dairy", label: "乳製品・卵", icon: "🥚" },
-  { value: "seasoning", label: "調味料", icon: "🧂" },
-  { value: "other", label: "その他", icon: "🍱" },
-];
-
-const CATEGORY_ICON: Record<FoodCategory, string> = Object.fromEntries(
-  CATEGORY_OPTIONS.map((c) => [c.value, c.icon])
-) as Record<FoodCategory, string>;
+// カテゴリのラベル＆アイコンは lib/foodIcons.ts で共通管理
 
 export default function FridgePage() {
   const [items, setItems] = useState<FoodItem[]>([]);
@@ -155,7 +145,8 @@ export default function FridgePage() {
 
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="page-title">🧊 冷蔵庫</h1>
+          <p className="text-xs font-semibold tracking-widest text-brand">FRIDGE</p>
+          <h1 className="page-title">冷蔵庫</h1>
           <p className="page-sub">
             期限内に「使った」で +{XP_REWARDS.useBeforeExpiry} XP！
           </p>

@@ -54,8 +54,8 @@ export default function StatsPage() {
     <main className="page">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-xs font-bold tracking-widest text-accent">REPORT</p>
-          <h1 className="page-title">📊 ロス削減レポート</h1>
+          <p className="text-xs font-semibold tracking-widest text-brand">REPORT</p>
+          <h1 className="page-title">ロス削減レポート</h1>
           <p className="page-sub">あなたが減らした食品ロスの記録</p>
         </div>
         <div className="text-4xl" aria-hidden>
