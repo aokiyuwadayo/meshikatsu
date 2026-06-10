@@ -16,6 +16,7 @@ import { applyXP, XP_REWARDS, stageFromLevel } from "@/lib/xp";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
 import { createRemotePost } from "@/lib/posts";
 import { getClientName } from "@/lib/profile";
+import { compressImage } from "@/lib/image";
 import type { CookingLog } from "@/types";
 
 export default function CookPage() {
@@ -62,11 +63,16 @@ export default function CookPage() {
     const nextLogs = addLog(log);
 
     // 1.5) 共有フィードにも投稿（Supabase 設定時のみ。未設定なら何もしない）
-    void createRemotePost({
-      userName: getClientName(),
-      text: `「${log.dishName}」を作りました！`,
-      kind: "cook",
-    });
+    //      写真は縮小してから添付（大きすぎる場合はテキストのみ）
+    void (async () => {
+      const shared = photoUrl ? await compressImage(photoUrl) : undefined;
+      await createRemotePost({
+        userName: getClientName(),
+        text: `「${log.dishName}」を作りました！`,
+        kind: "cook",
+        photoUrl: shared,
+      });
+    })();
 
     // 2) XP を加算（incrementCooking=true で料理回数+1 → スタンプ再計算）
     const before = getProgress();

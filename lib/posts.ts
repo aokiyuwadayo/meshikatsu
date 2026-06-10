@@ -55,6 +55,7 @@ export interface NewPost {
   avatar?: string;
   kind?: FeedKind;
   text: string;
+  photoUrl?: string; // 縮小済み data URL または http URL
 }
 
 /** 投稿を作成（remote 未設定なら false を返すだけ＝ローカルは別途保存済み） */
@@ -73,11 +74,88 @@ export async function createRemotePost(p: NewPost): Promise<boolean> {
         avatar: p.avatar || "😋",
         kind: p.kind || "cook",
         text: p.text,
+        photo_url: p.photoUrl || null,
         likes: 0,
       }),
     });
     return res.ok;
   } catch {
     return false; // 共有に失敗してもアプリは止めない
+  }
+}
+
+// ============================================================
+// コメント
+// ============================================================
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  userName: string;
+  text: string;
+  createdAt: string;
+}
+
+function mapCommentRow(r: Record<string, unknown>): PostComment {
+  return {
+    id: String(r.id ?? ""),
+    postId: String(r.post_id ?? ""),
+    userName: String(r.user_name ?? "ゲスト"),
+    text: String(r.text ?? ""),
+    createdAt: String(r.created_at ?? new Date().toISOString()),
+  };
+}
+
+/**
+ * 表示中の投稿ぶんのコメントをまとめて取得（postId → コメント配列）。
+ * comments テーブル未作成・通信失敗時は空オブジェクト（コメント0件扱い）。
+ */
+export async function fetchRemoteComments(
+  postIds: string[]
+): Promise<Record<string, PostComment[]>> {
+  if (!FEED_REMOTE || postIds.length === 0) return {};
+  try {
+    const ids = postIds.join(",");
+    const res = await fetch(
+      `${SB_URL}/rest/v1/comments?post_id=in.(${ids})&order=created_at.asc&limit=500`,
+      { headers: headers(), cache: "no-store" }
+    );
+    if (!res.ok) return {};
+    const rows = (await res.json()) as Record<string, unknown>[];
+    const byPost: Record<string, PostComment[]> = {};
+    for (const row of rows) {
+      const c = mapCommentRow(row);
+      (byPost[c.postId] ??= []).push(c);
+    }
+    return byPost;
+  } catch {
+    return {};
+  }
+}
+
+/** コメントを作成 */
+export async function createRemoteComment(p: {
+  postId: string;
+  userName: string;
+  text: string;
+}): Promise<boolean> {
+  if (!FEED_REMOTE) return false;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/comments`, {
+      method: "POST",
+      headers: {
+        ...headers(),
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        post_id: p.postId,
+        user_name: p.userName || "ゲスト",
+        text: p.text,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }

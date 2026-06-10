@@ -30,3 +30,29 @@ create policy "anyone can insert posts"
   with check (true);
 
 create index if not exists posts_created_at_idx on public.posts (created_at desc);
+
+-- ============================================================
+-- コメント（投稿への返信）
+-- ============================================================
+
+create table if not exists public.comments (
+  id          uuid primary key default gen_random_uuid(),
+  post_id     uuid not null references public.posts(id) on delete cascade,
+  user_name   text not null default 'ゲスト',
+  text        text not null,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.comments enable row level security;
+
+drop policy if exists "comments readable by everyone" on public.comments;
+create policy "comments readable by everyone"
+  on public.comments for select
+  using (true);
+
+drop policy if exists "anyone can insert comments" on public.comments;
+create policy "anyone can insert comments"
+  on public.comments for insert
+  with check (true);
+
+create index if not exists comments_post_id_idx on public.comments (post_id, created_at);
