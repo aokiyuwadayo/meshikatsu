@@ -87,3 +87,36 @@ create policy "anyone can unlike"
   using (true);
 
 create index if not exists post_likes_post_id_idx on public.post_likes (post_id);
+
+-- ============================================================
+-- 投稿の削除 & 通報（荒らし対策）
+-- 削除: アプリ側で「自分の表示名の投稿のみ」に制限（匿名MVPのhonor system）
+-- 通報: 1人1投稿1回。REPORT_HIDE_THRESHOLD(=3)件でフィードから自動非表示
+-- ============================================================
+
+drop policy if exists "anyone can delete posts" on public.posts;
+create policy "anyone can delete posts"
+  on public.posts for delete
+  using (true);
+
+create table if not exists public.reports (
+  id          uuid primary key default gen_random_uuid(),
+  post_id     uuid not null references public.posts(id) on delete cascade,
+  client      text not null,
+  created_at  timestamptz not null default now(),
+  unique (post_id, client)
+);
+
+alter table public.reports enable row level security;
+
+drop policy if exists "reports readable by everyone" on public.reports;
+create policy "reports readable by everyone"
+  on public.reports for select
+  using (true);
+
+drop policy if exists "anyone can report" on public.reports;
+create policy "anyone can report"
+  on public.reports for insert
+  with check (true);
+
+create index if not exists reports_post_id_idx on public.reports (post_id);

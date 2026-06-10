@@ -84,6 +84,93 @@ export async function createRemotePost(p: NewPost): Promise<boolean> {
   }
 }
 
+/**
+ * 自分の投稿を削除。
+ * id と user_name の二重条件で「自分の表示名の投稿」しか消せないようにする
+ * （ログイン無しMVPの誤爆防止。コメント・いいねはFKのcascadeで一緒に消える）。
+ */
+export async function deleteRemotePost(
+  postId: string,
+  client: string
+): Promise<boolean> {
+  if (!FEED_REMOTE) return false;
+  try {
+    const params = new URLSearchParams({
+      id: `eq.${postId}`,
+      user_name: `eq.${client}`,
+    });
+    const res = await fetch(`${SB_URL}/rest/v1/posts?${params}`, {
+      method: "DELETE",
+      headers: headers(),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================
+// 通報（荒らし対策）
+// 1人（client名）につき1投稿1回。3件以上でフィードから自動非表示。
+// ============================================================
+
+export interface ReportsState {
+  counts: Record<string, number>; // postId → 通報数
+  mine: Set<string>; // 自分が通報済みの postId
+}
+
+/** 表示中の投稿ぶんの通報をまとめて取得（テーブル未作成なら空） */
+export async function fetchRemoteReports(
+  postIds: string[],
+  client: string
+): Promise<ReportsState> {
+  const empty: ReportsState = { counts: {}, mine: new Set() };
+  if (!FEED_REMOTE || postIds.length === 0) return empty;
+  try {
+    const ids = postIds.join(",");
+    const res = await fetch(
+      `${SB_URL}/rest/v1/reports?post_id=in.(${ids})&select=post_id,client&limit=2000`,
+      { headers: headers(), cache: "no-store" }
+    );
+    if (!res.ok) return empty;
+    const rows = (await res.json()) as { post_id: string; client: string }[];
+    const counts: Record<string, number> = {};
+    const mine = new Set<string>();
+    for (const r of rows) {
+      counts[r.post_id] = (counts[r.post_id] ?? 0) + 1;
+      if (r.client === client) mine.add(r.post_id);
+    }
+    return { counts, mine };
+  } catch {
+    return empty;
+  }
+}
+
+/** 投稿を通報（同一人物の二重通報は無視して成功扱い） */
+export async function reportRemotePost(
+  postId: string,
+  client: string
+): Promise<boolean> {
+  if (!FEED_REMOTE) return false;
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/reports?on_conflict=post_id,client`,
+      {
+        method: "POST",
+        headers: {
+          ...headers(),
+          "Content-Type": "application/json",
+          Prefer: "return=minimal,resolution=ignore-duplicates",
+        },
+        body: JSON.stringify({ post_id: postId, client }),
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // ============================================================
 // コメント
 // ============================================================

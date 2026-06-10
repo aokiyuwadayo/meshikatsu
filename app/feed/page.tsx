@@ -15,8 +15,14 @@ import {
   createRemoteComment,
   fetchRemoteLikes,
   toggleRemoteLike,
+  deleteRemotePost,
+  fetchRemoteReports,
+  reportRemotePost,
   type PostComment,
 } from "@/lib/posts";
+
+/** この件数以上 通報された投稿はフィードから自動非表示 */
+const REPORT_HIDE_THRESHOLD = 3;
 import { getClientName } from "@/lib/profile";
 
 export default function FeedPage() {
@@ -35,6 +41,10 @@ export default function FeedPage() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  // 通報: postId → 通報数 / 自分が通報済みか
+  const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
+  const [reportedMine, setReportedMine] = useState<Record<string, boolean>>({});
+
   async function refresh() {
     setRefreshing(true);
     const res = await loadFeed();
@@ -43,16 +53,22 @@ export default function FeedPage() {
     setLoading(false);
     if (res.remote) {
       const ids = res.posts.map((p) => p.id);
-      // コメントといいねをまとめて取得
-      const [map, likes] = await Promise.all([
+      const me = getClientName();
+      // コメント・いいね・通報をまとめて取得
+      const [map, likes, reports] = await Promise.all([
         fetchRemoteComments(ids),
-        fetchRemoteLikes(ids, getClientName()),
+        fetchRemoteLikes(ids, me),
+        fetchRemoteReports(ids, me),
       ]);
       setComments(map);
       setLikeCounts(likes.counts);
       const mine: Record<string, boolean> = {};
       likes.mine.forEach((id) => (mine[id] = true));
       setLiked(mine);
+      setReportCounts(reports.counts);
+      const rMine: Record<string, boolean> = {};
+      reports.mine.forEach((id) => (rMine[id] = true));
+      setReportedMine(rMine);
     }
     setRefreshing(false);
   }
@@ -83,6 +99,23 @@ export default function FeedPage() {
 
   function toggleComments(id: string) {
     setOpenComments((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  /** 自分の投稿を削除（確認つき） */
+  async function handleDelete(id: string) {
+    if (!window.confirm("この投稿を削除しますか？（コメント・いいねも消えます）")) return;
+    const ok = await deleteRemotePost(id, getClientName());
+    if (ok) setPosts((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  /** 他人の投稿を通報（1人1回・3件で自動非表示） */
+  async function handleReport(id: string) {
+    if (reportedMine[id]) return;
+    if (!window.confirm("この投稿を通報しますか？")) return;
+    // 楽観的に反映（3件目なら即非表示になる）
+    setReportedMine((prev) => ({ ...prev, [id]: true }));
+    setReportCounts((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+    void reportRemotePost(id, getClientName());
   }
 
   async function submitComment(postId: string) {
@@ -134,7 +167,10 @@ export default function FeedPage() {
         <p className="mt-10 text-center text-sm text-ink-soft">読み込み中…</p>
       ) : (
         <ul className="space-y-2.5">
-          {posts.map((p, idx) => {
+          {posts
+            // 通報が一定数を超えた投稿は自動非表示（荒らし対策）
+            .filter((p) => (reportCounts[p.id] ?? 0) < REPORT_HIDE_THRESHOLD)
+            .map((p, idx) => {
             const isLiked = liked[p.id];
             // remote: 永続いいね数（DB）/ フォールバック: ローカル+1 のみ
             const likeCount = remote
@@ -209,6 +245,31 @@ export default function FeedPage() {
                     >
                       <span aria-hidden>💬</span>
                       {postComments.length > 0 ? postComments.length : "コメント"}
+                    </button>
+                  )}
+                  {/* 右端: 自分の投稿は削除 / 他人の投稿は通報 */}
+                  {remote && p.isSelf && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(p.id)}
+                      className="ml-auto text-xs font-semibold text-ink-soft/50 transition-colors hover:text-urgent"
+                    >
+                      削除
+                    </button>
+                  )}
+                  {remote && !p.isSelf && (
+                    <button
+                      type="button"
+                      onClick={() => handleReport(p.id)}
+                      disabled={reportedMine[p.id]}
+                      className={`ml-auto text-xs font-semibold transition-colors ${
+                        reportedMine[p.id]
+                          ? "text-warn"
+                          : "text-ink-soft/40 hover:text-warn"
+                      }`}
+                      title="不適切な投稿を通報"
+                    >
+                      {reportedMine[p.id] ? "🚩 通報済み" : "🚩 通報"}
                     </button>
                   )}
                 </div>
