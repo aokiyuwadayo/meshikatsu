@@ -15,6 +15,7 @@ import {
 import { applyXP, XP_REWARDS, stageFromLevel } from "@/lib/xp";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
 import CookingTimer from "@/components/CookingTimer";
+import { clearClaim } from "@/lib/timer";
 import { createRemotePost } from "@/lib/posts";
 import { getClientName } from "@/lib/profile";
 import { compressImage } from "@/lib/image";
@@ -98,6 +99,7 @@ export default function CookPage() {
     const next = applyXP(before, XP_REWARDS.cookPhoto, true);
     saveProgress(next);
     setLevel(next.level);
+    clearClaim(); // タイマー→記録コンボ完了。導線マーカーを消す
 
     // 3) 一覧を更新してフォームをクリア
     setLogs(nextLogs);

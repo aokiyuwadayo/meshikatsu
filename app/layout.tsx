@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Onboarding from "@/components/Onboarding";
-import AdBanner from "@/components/AdBanner";
 
 export const metadata: Metadata = {
   title: "メシ活 — ひとりの自炊を、みんなで続ける",
@@ -36,8 +35,6 @@ export default function RootLayout({
       <body className="bg-[#F2F5F4]">
         {/* デスクトップでは中央のスマホ幅カラム。背景は白でクリーンに */}
         <div className="app-shell relative mx-auto min-h-screen max-w-md bg-white shadow-xl shadow-ink/5">
-          {/* 最上部の横長・小型 広告枠（全画面共通） */}
-          <AdBanner />
           {children}
         </div>
         <Navigation />

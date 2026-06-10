@@ -5,8 +5,9 @@
 // 各投稿にコメントを付けられる（共有DB接続時のみ）。
 // Supabase 設定時は本物の共有フィード、未設定時はサンプルにフォールバック。
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 import { loadFeed, timeAgo, KIND_BADGE, type FeedPost } from "@/lib/feed";
 import {
   FEED_REMOTE,
@@ -133,7 +134,7 @@ export default function FeedPage() {
         <p className="mt-10 text-center text-sm text-ink-soft">読み込み中…</p>
       ) : (
         <ul className="space-y-2.5">
-          {posts.map((p) => {
+          {posts.map((p, idx) => {
             const isLiked = liked[p.id];
             // remote: 永続いいね数（DB）/ フォールバック: ローカル+1 のみ
             const likeCount = remote
@@ -142,8 +143,8 @@ export default function FeedPage() {
             const postComments = comments[p.id] ?? [];
             const isOpen = openComments[p.id];
             return (
+              <Fragment key={p.id}>
               <li
-                key={p.id}
                 className={`rounded-2xl border bg-white p-4 ${
                   p.isSelf ? "border-brand/30 bg-brand-light/40" : "border-ink/[0.08]"
                 }`}
@@ -263,6 +264,9 @@ export default function FeedPage() {
                   </div>
                 )}
               </li>
+              {/* 3投稿目の後にスポンサー枠（ネイティブ広告） */}
+              {idx === 2 && <AdBanner />}
+              </Fragment>
             );
           })}
         </ul>

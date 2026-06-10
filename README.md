@@ -1,32 +1,37 @@
-# オレの食品ロスを助けてくれ 🦸‍♂️
+# メシ活 🍳 — ひとりの自炊を、みんなで続ける
 
-一人暮らし大学生の「食」の無駄をなくす **食習慣管理アプリ**（Startup Weekend MVP）。
-理念は **食品ロス削減**。入口は **「手軽・安い・うまい」**。
+一人暮らし大学生のための **料理意欲SNS**（Startup Weekend MVP）。
+作った料理をシェアし、キャラクターを育てながら自炊を続ける。続くほど、食品ロスも自然と減る。
 
-🔗 **ライブデモ**: https://ore-foodloss.vercel.app
+🔗 **ライブ**: https://aokiyuwadayo.github.io/meshikatsu/
 
-## コンセプト
-- 既存の食品（**パスタソース・冷凍弁当・パン**）を束ね、**「いつ・どれだけ食べるか」を決めて管理**する食習慣アプリ
-- 時間と量を先に決める → **買いすぎ・食べ残しをなくす**（冷凍中心で日持ち）
-- 課金: **¥390/食（都度払い）**。想定リズム: 平日1食（昼は学食）／休日2食
+## 主な機能
+- 👥 **共有フィード** — みんなの食ログがリアルタイムで流れる（いいね・コメント・写真）
+- 🍳 **料理の記録** — 写真つきで記録すると +50XP、フィードにも自動シェア
+- ⏲️ **料理タイマー** — 煮込み中の放置で +1XP/分（最大+30）。アプリを閉じても進む
+- ⭐ **キャラ育成** — 5段階進化（卵→ひよこ→一人前→マスター→神様）、Lv.99 カンスト
+- 🍰 **とくい料理** — レベルで進化（Lv.1 卵焼き → Lv.50 ホールケーキ）
+- 🧊 **冷蔵庫管理** — レシート撮影で食材登録（デモはモック解析）、期限アラート
+- 📖 **レシピ発見** — スワイプで保存（左=保存 / 右=スキップ）
 
-## ローカルで動かす
-ビルド不要。`index.html` をブラウザで開くだけ。
+## 技術スタック
+- **Next.js 15**（App Router・静的書き出し `output: export`）+ TypeScript + Tailwind CSS
+- **Supabase**（PostgREST をブラウザから直接呼ぶ・RLSで保護）— 共有フィード/いいね/コメント
+- **GitHub Pages** + GitHub Actions（main へ push で自動デプロイ）
+- ローカルデータは localStorage（冷蔵庫・記録・XP）
 
-簡易サーバーで配信する場合:
+## 開発
+```bash
+npm install
+npm run dev   # http://localhost:3000
 ```
-npx -y serve -l 4321 .
-```
-→ http://localhost:4321
 
-## 開発スクリプト（任意・Windows/PowerShell）
-- `rebuild.ps1` … `index.html` に新しい Tailwind クラスを足したとき、CSSを再コンパイルして焼き込む
-- `deploy.ps1` … 最新の `index.html` を Vercel 本番へデプロイ（要 `vercel` ログイン）
+共有フィードをローカルで試す場合は `.env.local` を作成（`.env.local.example` 参照）。
+DB スキーマは [`supabase/schema.sql`](supabase/schema.sql)、セットアップ手順は [`docs/db/FEED-DB-SETUP.md`](docs/db/FEED-DB-SETUP.md)。
 
-## 技術
-- HTML + Vanilla JS（フレームワークなし）
-- Tailwind CSS（`build/` でオフライン焼き込み）
-- ホスティング: Vercel
+## デプロイ
+`main` に push すると GitHub Actions が自動でビルド & GitHub Pages へ公開する
+（[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)）。
 
 ## チーム
-Startup Weekend チーム「オレの食品ロスを助けてくれ」🍙
+Startup Weekend 発のプロジェクト 🍙

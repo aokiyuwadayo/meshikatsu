@@ -12,6 +12,8 @@ import {
   startTimer,
   clearTimer,
   timerXP,
+  markClaimed,
+  getRecentClaim,
   type CookingTimerState,
 } from "@/lib/timer";
 import { stageFromLevel, XP_REWARDS } from "@/lib/xp";
@@ -32,9 +34,12 @@ export default function CookingTimer({ level, onClaim }: CookingTimerProps) {
   const [claimedXP, setClaimedXP] = useState<number | null>(null);
   const [notified, setNotified] = useState(false);
 
-  // マウント時に保存済みタイマーを復元 + 1秒ごとに時刻を進める
+  // マウント時に保存済みタイマー＆受け取り済み導線を復元 + 1秒ごとに時刻を進める
   useEffect(() => {
     setTimer(getTimer());
+    // リロードしても「記録で+50XP」導線を30分は保つ
+    const recent = getRecentClaim();
+    if (recent) setClaimedXP(recent.xp);
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, []);
@@ -76,6 +81,7 @@ export default function CookingTimer({ level, onClaim }: CookingTimerProps) {
     clearTimer();
     setTimer(null);
     setClaimedXP(xp);
+    markClaimed(xp); // リロード後も導線を保つ
     onClaim(xp);
   }
 

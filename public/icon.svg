@@ -1,30 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="メシ活アイコン">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2FBF5B"/>
-      <stop offset="1" stop-color="#1F9D55"/>
+      <stop offset="0" stop-color="#0F857B"/>
+      <stop offset="1" stop-color="#0B6B62"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#FFFAF0"/>
+      <stop offset="1" stop-color="#F6E3C4"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EFEFEA"/>
     </linearGradient>
   </defs>
   <!-- 全面背景（マスカブル安全領域を確保） -->
   <rect width="512" height="512" fill="url(#bg)"/>
   <!-- 後光 -->
-  <circle cx="256" cy="268" r="150" fill="#ffffff" opacity="0.12"/>
+  <circle cx="256" cy="270" r="155" fill="#ffffff" opacity="0.10"/>
   <!-- 体（卵） -->
-  <ellipse cx="256" cy="300" rx="118" ry="126" fill="#FFF1DD" stroke="#F2D9B6" stroke-width="8"/>
+  <ellipse cx="256" cy="302" rx="118" ry="124" fill="url(#body)" stroke="#E8D5B8" stroke-width="8"/>
+  <!-- ツヤ -->
+  <ellipse cx="206" cy="232" rx="30" ry="44" fill="#ffffff" opacity="0.5" transform="rotate(-18 206 232)"/>
   <!-- コック帽 -->
-  <g fill="#ffffff" stroke="#F2D9B6" stroke-width="6">
-    <ellipse cx="256" cy="150" rx="70" ry="44"/>
-    <circle cx="206" cy="160" r="34"/>
-    <circle cx="306" cy="160" r="34"/>
-    <rect x="196" y="178" width="120" height="34" rx="12"/>
+  <g fill="url(#hat)" stroke="#E8D5B8" stroke-width="6">
+    <circle cx="204" cy="146" r="42"/>
+    <circle cx="308" cy="146" r="42"/>
+    <circle cx="256" cy="124" r="50"/>
+    <rect x="190" y="156" width="132" height="48" rx="14"/>
   </g>
-  <rect x="196" y="196" width="120" height="12" fill="#2FBF5B" opacity="0.85"/>
-  <!-- 顔 -->
-  <circle cx="222" cy="296" r="13" fill="#3A2A1B"/>
-  <circle cx="290" cy="296" r="13" fill="#3A2A1B"/>
-  <circle cx="226" cy="291" r="4" fill="#fff"/>
-  <circle cx="294" cy="291" r="4" fill="#fff"/>
-  <circle cx="198" cy="324" r="12" fill="#FF9E6B" opacity="0.7"/>
-  <circle cx="314" cy="324" r="12" fill="#FF9E6B" opacity="0.7"/>
-  <path d="M226 330 q30 28 60 0" fill="none" stroke="#3A2A1B" stroke-width="8" stroke-linecap="round"/>
+  <rect x="190" y="186" width="132" height="16" rx="8" fill="#0F857B"/>
+  <!-- 顔（大きな瞳＋二重ハイライト） -->
+  <ellipse cx="220" cy="294" rx="20" ry="23" fill="#2B2B33"/>
+  <ellipse cx="292" cy="294" rx="20" ry="23" fill="#2B2B33"/>
+  <circle cx="213" cy="286" r="7.5" fill="#fff" opacity="0.95"/>
+  <circle cx="227" cy="302" r="4" fill="#fff" opacity="0.8"/>
+  <circle cx="285" cy="286" r="7.5" fill="#fff" opacity="0.95"/>
+  <circle cx="299" cy="302" r="4" fill="#fff" opacity="0.8"/>
+  <!-- ほっぺ -->
+  <ellipse cx="186" cy="326" rx="17" ry="11" fill="#F5A37C" opacity="0.55"/>
+  <ellipse cx="326" cy="326" rx="17" ry="11" fill="#F5A37C" opacity="0.55"/>
+  <!-- 笑顔 -->
+  <path d="M228 334 q28 26 56 0" fill="none" stroke="#2B2B33" stroke-width="10" stroke-linecap="round"/>
 </svg>

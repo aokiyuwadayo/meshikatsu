@@ -47,3 +47,35 @@ export function startTimer(minutes: number): CookingTimerState {
 export function clearTimer(): void {
   localStorage.removeItem(KEY);
 }
+
+// ---- 受け取り直後の「記録で+50XP」導線をリロード後も保つためのマーカー ----
+
+const CLAIM_KEY = "meshikatsu:timerClaim";
+const CLAIM_TTL_MS = 30 * 60_000; // 30分
+
+/** 受け取りを記録（XPと時刻） */
+export function markClaimed(xp: number): void {
+  localStorage.setItem(CLAIM_KEY, JSON.stringify({ xp, at: Date.now() }));
+}
+
+/** 30分以内の受け取りがあれば返す（リロード後の導線表示用） */
+export function getRecentClaim(): { xp: number } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CLAIM_KEY);
+    if (!raw) return null;
+    const { xp, at } = JSON.parse(raw) as { xp: number; at: number };
+    if (Date.now() - at > CLAIM_TTL_MS) {
+      localStorage.removeItem(CLAIM_KEY);
+      return null;
+    }
+    return { xp };
+  } catch {
+    return null;
+  }
+}
+
+/** 導線を消す（料理を記録したとき） */
+export function clearClaim(): void {
+  localStorage.removeItem(CLAIM_KEY);
+}
