@@ -11,6 +11,7 @@ import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/ex
 import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
 import { seedDemo, clearDemo } from "@/lib/seed";
 import { isEnabled, notifyExpiring } from "@/lib/notify";
+import { getClientName, setClientName } from "@/lib/profile";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
 import NotifyToggle from "@/components/NotifyToggle";
@@ -34,10 +35,14 @@ export default function HomePage() {
   const [cookCount, setCookCount] = useState(0);
   // 開発用パネルは ?demo 付きURLのときだけ表示（通常ユーザーには見せない）
   const [showDemo, setShowDemo] = useState(false);
+  // フィードに出る表示名（投稿・コメント・いいねに使う）
+  const [displayName, setDisplayName] = useState("");
+  const [nameSaved, setNameSaved] = useState(false);
 
   // localStorage 読み出しは useEffect 内（ハイドレーション不整合を避ける）
   useEffect(() => {
     setShowDemo(window.location.search.includes("demo"));
+    setDisplayName(getClientName());
     const items = getFridge();
     setProgress(getProgress());
     setFridge(items);
@@ -149,6 +154,42 @@ export default function HomePage() {
       {/* 期限通知のオプトイン */}
       <section className="mt-4">
         <NotifyToggle items={fridge} />
+      </section>
+
+      {/* フィードの表示名 */}
+      <section className="mt-6">
+        <h2 className="section-title">👤 フィードの表示名</h2>
+        <div className="card-soft">
+          <p className="text-xs text-ink-soft">
+            投稿・コメント・いいねに使われる名前です。
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => {
+                setDisplayName(e.target.value);
+                setNameSaved(false);
+              }}
+              maxLength={20}
+              placeholder="例：ゆうわ"
+              className="field mt-0 min-w-0 flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setClientName(displayName);
+                setDisplayName(getClientName());
+                setNameSaved(true);
+                window.setTimeout(() => setNameSaved(false), 2000);
+              }}
+              disabled={!displayName.trim()}
+              className="btn-primary shrink-0"
+            >
+              {nameSaved ? "保存済 ✓" : "保存"}
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* 旬の料理提案（機能③）＋ レシピ共有 */}

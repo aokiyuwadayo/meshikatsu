@@ -159,3 +159,77 @@ export async function createRemoteComment(p: {
     return false;
   }
 }
+
+// ============================================================
+// いいね（永続・共有）
+// post_likes テーブル：誰（client名）がどの投稿にいいねしたかの1行。
+// いいね数 = posts.likes（シード値）+ post_likes の件数。
+// テーブル未作成時は空を返し、画面側はローカルいいねのまま動く。
+// ============================================================
+
+export interface LikesState {
+  counts: Record<string, number>; // postId → 追加いいね数
+  mine: Set<string>; // 自分がいいね済みの postId
+}
+
+/** 表示中の投稿ぶんのいいねをまとめて取得 */
+export async function fetchRemoteLikes(
+  postIds: string[],
+  client: string
+): Promise<LikesState> {
+  const empty: LikesState = { counts: {}, mine: new Set() };
+  if (!FEED_REMOTE || postIds.length === 0) return empty;
+  try {
+    const ids = postIds.join(",");
+    const res = await fetch(
+      `${SB_URL}/rest/v1/post_likes?post_id=in.(${ids})&select=post_id,client&limit=2000`,
+      { headers: headers(), cache: "no-store" }
+    );
+    if (!res.ok) return empty;
+    const rows = (await res.json()) as { post_id: string; client: string }[];
+    const counts: Record<string, number> = {};
+    const mine = new Set<string>();
+    for (const r of rows) {
+      counts[r.post_id] = (counts[r.post_id] ?? 0) + 1;
+      if (r.client === client) mine.add(r.post_id);
+    }
+    return { counts, mine };
+  } catch {
+    return empty;
+  }
+}
+
+/** いいねを付ける/外す（on=true で付与）。成功で true */
+export async function toggleRemoteLike(
+  postId: string,
+  client: string,
+  on: boolean
+): Promise<boolean> {
+  if (!FEED_REMOTE) return false;
+  try {
+    if (on) {
+      const res = await fetch(`${SB_URL}/rest/v1/post_likes`, {
+        method: "POST",
+        headers: {
+          ...headers(),
+          "Content-Type": "application/json",
+          // 二重いいね（unique 制約違反）は無視して成功扱いにする
+          Prefer: "return=minimal,resolution=ignore-duplicates",
+        },
+        body: JSON.stringify({ post_id: postId, client }),
+      });
+      return res.ok;
+    }
+    const params = new URLSearchParams({
+      post_id: `eq.${postId}`,
+      client: `eq.${client}`,
+    });
+    const res = await fetch(`${SB_URL}/rest/v1/post_likes?${params}`, {
+      method: "DELETE",
+      headers: headers(),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

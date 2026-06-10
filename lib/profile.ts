@@ -15,3 +15,10 @@ export function getClientName(): string {
   }
   return n;
 }
+
+/** 表示名を変更（以後の投稿・コメント・いいねに反映） */
+export function setClientName(name: string): void {
+  if (typeof window === "undefined") return;
+  const v = name.trim().slice(0, 20);
+  if (v) localStorage.setItem(NAME_KEY, v);
+}

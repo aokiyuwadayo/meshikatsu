@@ -12,6 +12,8 @@ import {
   FEED_REMOTE,
   fetchRemoteComments,
   createRemoteComment,
+  fetchRemoteLikes,
+  toggleRemoteLike,
   type PostComment,
 } from "@/lib/posts";
 import { getClientName } from "@/lib/profile";
@@ -21,6 +23,8 @@ export default function FeedPage() {
   const [remote, setRemote] = useState(false);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState<Record<string, boolean>>({});
+  // 追加いいね数（DBの post_likes 由来。表示 = posts.likes + これ）
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
 
   // コメント: postId → コメント配列 / 開閉状態 / 入力中テキスト
   const [comments, setComments] = useState<Record<string, PostComment[]>>({});
@@ -34,15 +38,32 @@ export default function FeedPage() {
       setRemote(res.remote);
       setLoading(false);
       if (res.remote) {
-        // 表示中の投稿ぶんのコメントをまとめて取得
-        const map = await fetchRemoteComments(res.posts.map((p) => p.id));
+        const ids = res.posts.map((p) => p.id);
+        // コメントといいねをまとめて取得
+        const [map, likes] = await Promise.all([
+          fetchRemoteComments(ids),
+          fetchRemoteLikes(ids, getClientName()),
+        ]);
         setComments(map);
+        setLikeCounts(likes.counts);
+        const mine: Record<string, boolean> = {};
+        likes.mine.forEach((id) => (mine[id] = true));
+        setLiked(mine);
       }
     });
   }, []);
 
   function toggleLike(id: string) {
-    setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
+    const next = !liked[id];
+    setLiked((prev) => ({ ...prev, [id]: next }));
+    if (remote) {
+      // 楽観的にカウントを増減し、裏でDBへ反映（永続いいね）
+      setLikeCounts((prev) => ({
+        ...prev,
+        [id]: Math.max(0, (prev[id] ?? 0) + (next ? 1 : -1)),
+      }));
+      void toggleRemoteLike(id, getClientName(), next);
+    }
   }
 
   function toggleComments(id: string) {
@@ -87,7 +108,10 @@ export default function FeedPage() {
         <ul className="space-y-2.5">
           {posts.map((p) => {
             const isLiked = liked[p.id];
-            const likeCount = p.likes + (isLiked ? 1 : 0);
+            // remote: 永続いいね数（DB）/ フォールバック: ローカル+1 のみ
+            const likeCount = remote
+              ? p.likes + (likeCounts[p.id] ?? 0)
+              : p.likes + (isLiked ? 1 : 0);
             const postComments = comments[p.id] ?? [];
             const isOpen = openComments[p.id];
             return (

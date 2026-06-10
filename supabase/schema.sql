@@ -56,3 +56,34 @@ create policy "anyone can insert comments"
   with check (true);
 
 create index if not exists comments_post_id_idx on public.comments (post_id, created_at);
+
+-- ============================================================
+-- いいね（永続・共有）
+-- ============================================================
+
+create table if not exists public.post_likes (
+  id          uuid primary key default gen_random_uuid(),
+  post_id     uuid not null references public.posts(id) on delete cascade,
+  client      text not null,            -- 端末の表示名（匿名 MVP の識別子）
+  created_at  timestamptz not null default now(),
+  unique (post_id, client)              -- 同じ人の二重いいねを防ぐ
+);
+
+alter table public.post_likes enable row level security;
+
+drop policy if exists "likes readable by everyone" on public.post_likes;
+create policy "likes readable by everyone"
+  on public.post_likes for select
+  using (true);
+
+drop policy if exists "anyone can like" on public.post_likes;
+create policy "anyone can like"
+  on public.post_likes for insert
+  with check (true);
+
+drop policy if exists "anyone can unlike" on public.post_likes;
+create policy "anyone can unlike"
+  on public.post_likes for delete
+  using (true);
+
+create index if not exists post_likes_post_id_idx on public.post_likes (post_id);
