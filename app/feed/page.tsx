@@ -32,25 +32,39 @@ export default function FeedPage() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<Record<string, boolean>>({});
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function refresh() {
+    setRefreshing(true);
+    const res = await loadFeed();
+    setPosts(res.posts);
+    setRemote(res.remote);
+    setLoading(false);
+    if (res.remote) {
+      const ids = res.posts.map((p) => p.id);
+      // コメントといいねをまとめて取得
+      const [map, likes] = await Promise.all([
+        fetchRemoteComments(ids),
+        fetchRemoteLikes(ids, getClientName()),
+      ]);
+      setComments(map);
+      setLikeCounts(likes.counts);
+      const mine: Record<string, boolean> = {};
+      likes.mine.forEach((id) => (mine[id] = true));
+      setLiked(mine);
+    }
+    setRefreshing(false);
+  }
+
   useEffect(() => {
-    loadFeed().then(async (res) => {
-      setPosts(res.posts);
-      setRemote(res.remote);
-      setLoading(false);
-      if (res.remote) {
-        const ids = res.posts.map((p) => p.id);
-        // コメントといいねをまとめて取得
-        const [map, likes] = await Promise.all([
-          fetchRemoteComments(ids),
-          fetchRemoteLikes(ids, getClientName()),
-        ]);
-        setComments(map);
-        setLikeCounts(likes.counts);
-        const mine: Record<string, boolean> = {};
-        likes.mine.forEach((id) => (mine[id] = true));
-        setLiked(mine);
-      }
-    });
+    refresh();
+    // タブに戻ってきたら新着を取りに行く
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggleLike(id: string) {
@@ -96,10 +110,23 @@ export default function FeedPage() {
 
   return (
     <main className="page">
-      <header className="mb-4">
-        <p className="text-xs font-semibold tracking-widest text-brand">FEED</p>
-        <h1 className="page-title">フィード</h1>
-        <p className="page-sub">みんなの食ログ。今日もどこかで誰かがロスを減らしてる。</p>
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold tracking-widest text-brand">FEED</p>
+          <h1 className="page-title">フィード</h1>
+          <p className="page-sub">みんなの食ログ。今日もどこかで誰かがロスを減らしてる。</p>
+        </div>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshing}
+          aria-label="フィードを更新"
+          className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/[0.12] bg-white text-base text-ink-soft transition-colors hover:bg-cream disabled:opacity-50"
+        >
+          <span className={refreshing ? "animate-spin" : ""} aria-hidden>
+            ↻
+          </span>
+        </button>
       </header>
 
       {loading ? (

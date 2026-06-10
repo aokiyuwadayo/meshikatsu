@@ -208,16 +208,20 @@ export async function toggleRemoteLike(
   if (!FEED_REMOTE) return false;
   try {
     if (on) {
-      const res = await fetch(`${SB_URL}/rest/v1/post_likes`, {
-        method: "POST",
-        headers: {
-          ...headers(),
-          "Content-Type": "application/json",
-          // 二重いいね（unique 制約違反）は無視して成功扱いにする
-          Prefer: "return=minimal,resolution=ignore-duplicates",
-        },
-        body: JSON.stringify({ post_id: postId, client }),
-      });
+      // on_conflict 指定がないと unique(post_id, client) 違反が 409 になる。
+      // 指定すれば二重いいねは「無視して成功」になる（端末またぎのズレ防止）。
+      const res = await fetch(
+        `${SB_URL}/rest/v1/post_likes?on_conflict=post_id,client`,
+        {
+          method: "POST",
+          headers: {
+            ...headers(),
+            "Content-Type": "application/json",
+            Prefer: "return=minimal,resolution=ignore-duplicates",
+          },
+          body: JSON.stringify({ post_id: postId, client }),
+        }
+      );
       return res.ok;
     }
     const params = new URLSearchParams({
