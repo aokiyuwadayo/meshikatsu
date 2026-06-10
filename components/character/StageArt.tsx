@@ -116,6 +116,29 @@ function Toque({
   );
 }
 
+/** 立ちのぼる湯気（3本・ずらしてループ） */
+function Steam({ x, y, scale = 1, color = "#B9C7C4" }: { x: number; y: number; scale?: number; color?: string }) {
+  const puffs = [
+    { dx: -3.5 * scale, delay: "0s" },
+    { dx: 0, delay: "0.6s" },
+    { dx: 3.5 * scale, delay: "1.2s" },
+  ];
+  return (
+    <g stroke={color} strokeWidth={1.5 * scale} strokeLinecap="round" fill="none">
+      {puffs.map((p, i) => (
+        <path
+          key={i}
+          d={`M${x + p.dx} ${y} q${2 * scale} -2.5 0 -${4.5 * scale} q-${2 * scale} -2.5 0 -${4.5 * scale}`}
+          opacity="0"
+        >
+          <animate attributeName="opacity" values="0;0.75;0" dur="1.8s" begin={p.delay} repeatCount="indefinite" />
+          <animateTransform attributeName="transform" type="translate" values="0 2; 0 -7" dur="1.8s" begin={p.delay} repeatCount="indefinite" />
+        </path>
+      ))}
+    </g>
+  );
+}
+
 /** 接地の影 */
 function Ground({ small = false }: { small?: boolean }) {
   return (
@@ -132,37 +155,58 @@ function Ground({ small = false }: { small?: boolean }) {
 
 /* ============ ステージ別 ============ */
 
-/** ステージ1: 見習いシェフの卵（芽が出た卵） */
+/** ステージ1: 見習いシェフの卵（小さなフライパンで卵焼きに挑戦中） */
 function Stage1() {
   return (
     <g className="animate-float-slow">
-      {/* 芽 */}
+      {/* がんばってゆれる本体（料理中の一生懸命さ） */}
       <g>
-        <path d="M50 30 v-7" stroke={C.teal} strokeWidth="2.4" strokeLinecap="round" />
-        <path d="M50 24 q-8 -2 -8 -9 q8 0 8 9" fill={C.teal} />
-        <path d="M50 26 q8 -2 8 -9 q-8 0 -8 9" fill="#15A192" />
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          values="-2 50 86; 2 50 86; -2 50 86"
+          dur="2.2s"
+          repeatCount="indefinite"
+        />
+        {/* 芽 */}
+        <g>
+          <path d="M50 30 v-7" stroke={C.teal} strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M50 24 q-8 -2 -8 -9 q8 0 8 9" fill={C.teal} />
+          <path d="M50 26 q8 -2 8 -9 q-8 0 -8 9" fill="#15A192" />
+        </g>
+        {/* 卵 */}
+        <path
+          d="M50 30 C 33 30 26 47 26 60 C 26 76 36 86 50 86 C 64 86 74 76 74 60 C 74 47 67 30 50 30 Z"
+          fill="url(#mkBody)"
+          stroke={C.shellEdge}
+          strokeWidth="1.6"
+        />
+        {/* 殻の斑点 */}
+        <g fill={C.cream2} opacity="0.8">
+          <circle cx="34" cy="50" r="1.6" />
+          <circle cx="68" cy="56" r="1.9" />
+          <circle cx="62" cy="42" r="1.3" />
+          <circle cx="40" cy="76" r="1.6" />
+        </g>
+        {/* ツヤ */}
+        <ellipse cx="40" cy="42" rx="6" ry="9" fill="#fff" opacity="0.5" transform="rotate(-18 40 42)" />
+        {/* 顔 */}
+        <Eye cx={42} cy={58} />
+        <Eye cx={58} cy={58} />
+        <path d="M46.5 66 q3.5 3.4 7 0" fill="none" stroke={C.ink} strokeWidth="2" strokeLinecap="round" />
+        <Cheeks y={64} />
       </g>
-      {/* 卵 */}
-      <path
-        d="M50 30 C 33 30 26 47 26 60 C 26 76 36 86 50 86 C 64 86 74 76 74 60 C 74 47 67 30 50 30 Z"
-        fill="url(#mkBody)"
-        stroke={C.shellEdge}
-        strokeWidth="1.6"
-      />
-      {/* 殻の斑点 */}
-      <g fill={C.cream2} opacity="0.8">
-        <circle cx="34" cy="50" r="1.6" />
-        <circle cx="68" cy="56" r="1.9" />
-        <circle cx="62" cy="42" r="1.3" />
-        <circle cx="40" cy="76" r="1.6" />
+      {/* 足元のミニフライパン（卵焼き調理中） */}
+      <g>
+        <ellipse cx="81" cy="86" rx="8.5" ry="3.4" fill={C.panBody} stroke={C.panDark} strokeWidth="1.2" />
+        <ellipse cx="81" cy="85" rx="6" ry="2.2" fill={C.panDark} />
+        <rect x="71" y="84.4" width="5" height="2.4" rx="1.2" fill={C.panDark} />
+        {/* 卵焼き（じゅわっと揺れる） */}
+        <ellipse cx="81" cy="84.6" rx="3.6" ry="1.6" fill="#FFD86B" stroke={C.goldDeep} strokeWidth="0.6">
+          <animate attributeName="rx" values="3.6;4;3.6" dur="0.9s" repeatCount="indefinite" />
+        </ellipse>
+        <Steam x={81} y={79} scale={0.8} />
       </g>
-      {/* ツヤ */}
-      <ellipse cx="40" cy="42" rx="6" ry="9" fill="#fff" opacity="0.5" transform="rotate(-18 40 42)" />
-      {/* 顔 */}
-      <Eye cx={42} cy={58} />
-      <Eye cx={58} cy={58} />
-      <path d="M46.5 66 q3.5 3.4 7 0" fill="none" stroke={C.ink} strokeWidth="2" strokeLinecap="round" />
-      <Cheeks y={64} />
     </g>
   );
 }
@@ -200,6 +244,25 @@ function Stage2() {
         <path d="M44 86 v3" />
         <path d="M56 86 v3" />
       </g>
+      {/* まぜまぜボウル（スプーンが行ったり来たり） */}
+      <g>
+        {/* スプーン（ボウルの中心を支点にゆれる） */}
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="-24 80 82; 22 80 82; -24 80 82"
+            dur="1.1s"
+            repeatCount="indefinite"
+          />
+          <rect x="79" y="68" width="2.6" height="13" rx="1.3" fill={C.terraLight} />
+          <ellipse cx="80.3" cy="67" rx="2.6" ry="3.2" fill={C.terraLight} />
+        </g>
+        {/* ボウル */}
+        <path d="M71 80 a9.5 8 0 0 0 19 0 z" fill={C.teal} stroke={C.tealDark} strokeWidth="1.2" />
+        <ellipse cx="80.5" cy="80" rx="9.5" ry="2.6" fill="#FBF1DC" stroke={C.tealDark} strokeWidth="0.8" />
+        <Steam x={80} y={73} scale={0.8} />
+      </g>
     </g>
   );
 }
@@ -226,15 +289,37 @@ function Stage3() {
       {/* スカーフ（ティール） */}
       <path d="M37 56 q13 7 26 0 l-3 5 q-10 5 -20 0 z" fill={C.teal} />
       <path d="M48 60 l4 7 l-5 1 z" fill={C.tealDark} />
-      {/* 左腕：フライパンを掲げる */}
+      {/* 左腕：フライパンを振って調理中 */}
       <g>
         <path d="M30 56 q-8 -4 -10 -12" stroke="url(#mkBody)" strokeWidth="6" strokeLinecap="round" fill="none" />
-        <circle cx="19" cy="38" r="7.5" fill={C.panBody} stroke={C.panDark} strokeWidth="1.4" />
-        <circle cx="19" cy="38" r="4.5" fill={C.panDark} />
-        <rect x="23" y="42" width="3" height="9" rx="1.5" fill={C.panDark} transform="rotate(-38 24 46)" />
-        {/* 目玉焼き */}
-        <circle cx="19" cy="37" r="3.4" fill="#fff" />
-        <circle cx="19" cy="37" r="1.5" fill={C.gold} />
+        {/* パン本体（手元を支点にあおる） */}
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="0 26 48; -14 26 48; 5 26 48; 0 26 48"
+            keyTimes="0;0.3;0.6;1"
+            dur="1.6s"
+            repeatCount="indefinite"
+          />
+          <circle cx="19" cy="38" r="7.5" fill={C.panBody} stroke={C.panDark} strokeWidth="1.4" />
+          <circle cx="19" cy="38" r="4.5" fill={C.panDark} />
+          <rect x="23" y="42" width="3" height="9" rx="1.5" fill={C.panDark} transform="rotate(-38 24 46)" />
+        </g>
+        {/* 目玉焼き（あおりに合わせてジャンプ） */}
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0; 0 -10; 0 0; 0 0"
+            keyTimes="0;0.35;0.62;1"
+            dur="1.6s"
+            repeatCount="indefinite"
+          />
+          <circle cx="19" cy="36" r="3.4" fill="#fff" />
+          <circle cx="19" cy="36" r="1.5" fill={C.gold} />
+        </g>
+        <Steam x={19} y={28} scale={0.9} />
       </g>
       {/* 右腕 */}
       <path d="M70 58 q7 4 8 10" stroke="url(#mkBody)" strokeWidth="6" strokeLinecap="round" fill="none" />
@@ -273,12 +358,36 @@ function Stage4() {
       {/* スカーフ（テラコッタ） */}
       <path d="M36 50 q14 8 28 0 l-3 6 q-11 5 -22 0 z" fill={C.terra} />
       <path d="M48 55 l4 8 l-5.5 1 z" fill="#A8552F" />
-      {/* 右腕：金の泡立て器 */}
+      {/* 右腕：金の泡立て器（高速ホイップ） */}
       <g>
         <path d="M71 56 q9 -2 11 -12" stroke="url(#mkHat)" strokeWidth="6" strokeLinecap="round" fill="none" />
-        <rect x="80.5" y="34" width="3" height="10" rx="1.5" fill={C.goldDeep} />
-        <path d="M82 34 q-6 -10 0 -16 q6 6 0 16" fill="none" stroke={C.gold} strokeWidth="1.8" />
-        <path d="M82 34 q-2.5 -9 0 -16 M82 34 q2.5 -9 0 -16" fill="none" stroke={C.gold} strokeWidth="1.4" />
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="-7 82 44; 7 82 44; -7 82 44"
+            dur="0.45s"
+            repeatCount="indefinite"
+          />
+          <rect x="80.5" y="34" width="3" height="10" rx="1.5" fill={C.goldDeep} />
+          <path d="M82 34 q-6 -10 0 -16 q6 6 0 16" fill="none" stroke={C.gold} strokeWidth="1.8" />
+          <path d="M82 34 q-2.5 -9 0 -16 M82 34 q2.5 -9 0 -16" fill="none" stroke={C.gold} strokeWidth="1.4" />
+        </g>
+        {/* 生地のしぶき（ホイップ中） */}
+        <g fill="#FFF3D6">
+          <circle cx="74" cy="22" r="1.2">
+            <animate attributeName="opacity" values="0;1;0" dur="0.9s" repeatCount="indefinite" />
+            <animateTransform attributeName="transform" type="translate" values="0 0; -2 -4" dur="0.9s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="90" cy="24" r="1">
+            <animate attributeName="opacity" values="0;1;0" dur="1.1s" begin="0.3s" repeatCount="indefinite" />
+            <animateTransform attributeName="transform" type="translate" values="0 0; 2 -4" dur="1.1s" begin="0.3s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="82" cy="16" r="1.1">
+            <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.6s" repeatCount="indefinite" />
+            <animateTransform attributeName="transform" type="translate" values="0 0; 0 -4" dur="1s" begin="0.6s" repeatCount="indefinite" />
+          </circle>
+        </g>
       </g>
       {/* 左腕（腰に） */}
       <path d="M29 58 q-7 4 -6 11" stroke="url(#mkHat)" strokeWidth="6" strokeLinecap="round" fill="none" />
@@ -333,6 +442,20 @@ function Stage5() {
           <ellipse cx="40" cy="88" rx="10" ry="4.5" />
           <ellipse cx="58" cy="89" rx="12" ry="5" />
           <ellipse cx="49" cy="85" rx="9" ry="4.4" />
+        </g>
+        {/* 神の黄金鍋（雲の上でぐつぐつ） */}
+        <g>
+          <path d="M15 76 a8.5 7 0 0 0 17 0 z" fill={C.gold} stroke={C.goldDeep} strokeWidth="1.2" />
+          <ellipse cx="23.5" cy="76" rx="8.5" ry="2.4" fill="#FFF3D6" stroke={C.goldDeep} strokeWidth="0.8" />
+          <rect x="11" y="74.8" width="4" height="2.2" rx="1.1" fill={C.goldDeep} />
+          <rect x="32" y="74.8" width="4" height="2.2" rx="1.1" fill={C.goldDeep} />
+          {/* 金の湯気 */}
+          <Steam x={23.5} y={70} scale={0.9} color={C.gold} />
+          {/* 鍋から星が立ちのぼる（神の料理） */}
+          <path d="M23.5 66 l1.2 2.4 l2.6 .4 l-1.9 1.8 l.4 2.6 l-2.3 -1.2 l-2.3 1.2 l.4 -2.6 l-1.9 -1.8 l2.6 -.4 z" fill={C.gold}>
+            <animate attributeName="opacity" values="0;1;0" dur="2.4s" repeatCount="indefinite" />
+            <animateTransform attributeName="transform" type="translate" values="0 4; 0 -12" dur="2.4s" repeatCount="indefinite" />
+          </path>
         </g>
       </g>
       {/* きらめき（明滅） */}

@@ -14,6 +14,7 @@ import {
 } from "@/lib/storage";
 import { applyXP, XP_REWARDS, stageFromLevel } from "@/lib/xp";
 import LevelUpCelebration from "@/components/LevelUpCelebration";
+import CookingTimer from "@/components/CookingTimer";
 import { createRemotePost } from "@/lib/posts";
 import { getClientName } from "@/lib/profile";
 import { compressImage } from "@/lib/image";
@@ -29,6 +30,8 @@ export default function CookPage() {
   const [showXP, setShowXP] = useState(false);
   // レベルアップお祝い
   const [levelUp, setLevelUp] = useState<{ level: number; newStage: boolean } | null>(null);
+  // タイマーの「一緒に調理中」キャラ表示用
+  const [level, setLevel] = useState(1);
 
   // ファイル選択 input をリセットするための参照
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +39,23 @@ export default function CookPage() {
   // localStorage の読み出しは必ず useEffect 内で（SSR / ハイドレーション対策）
   useEffect(() => {
     setLogs(getLogs());
+    setLevel(getProgress().level);
   }, []);
+
+  /** タイマー完走XPの受け取り（料理回数は増やさない＝記録XPと役割分担） */
+  function handleTimerClaim(xp: number) {
+    const before = getProgress();
+    const next = applyXP(before, xp, false);
+    saveProgress(next);
+    setLevel(next.level);
+    if (next.level > before.level) {
+      setLevelUp({
+        level: next.level,
+        newStage:
+          stageFromLevel(next.level).stage !== stageFromLevel(before.level).stage,
+      });
+    }
+  }
 
   // 写真を base64 data URL に変換して photoUrl に保持
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -78,6 +97,7 @@ export default function CookPage() {
     const before = getProgress();
     const next = applyXP(before, XP_REWARDS.cookPhoto, true);
     saveProgress(next);
+    setLevel(next.level);
 
     // 3) 一覧を更新してフォームをクリア
     setLogs(nextLogs);
@@ -115,6 +135,11 @@ export default function CookPage() {
         <h1 className="page-title">🍳 料理を記録</h1>
         <p className="page-sub">作った料理を記録して、キャラクターを育てよう！</p>
       </header>
+
+      {/* 料理タイマー（放置で +1XP/分・最大30） */}
+      <div className="mb-4">
+        <CookingTimer level={level} onClaim={handleTimerClaim} />
+      </div>
 
       {/* 入力カード */}
       <section className="card relative">

@@ -13,7 +13,6 @@ import {
   genId,
 } from "@/lib/storage";
 import {
-  xpToNextLevel,
   STAMPS_PER_REWARD,
   STAGES,
   stageFromLevel,
@@ -22,6 +21,7 @@ import {
 } from "@/lib/xp";
 import { REWARDS, genCouponCode } from "@/lib/loss";
 import CharacterDisplay from "@/components/CharacterDisplay";
+import CookingShowcase from "@/components/CookingShowcase";
 import XPBar from "@/components/XPBar";
 import StageArt from "@/components/character/StageArt";
 import type { CookingLog, UserProgress, Redemption, Reward } from "@/types";
@@ -87,9 +87,8 @@ export default function CharacterPage() {
         <div className="mt-5">
           <XPBar totalXP={progress.totalXP} />
         </div>
-        <p className="mt-3 text-center text-xs font-semibold text-ink-soft">
-          次のレベルまで あと{xpToNextLevel(progress.totalXP)} XP
-        </p>
+        {/* とくい料理（レベルで進化） */}
+        <CookingShowcase level={progress.level} />
       </section>
 
       {/* 成長ロードマップ（5段階） */}
