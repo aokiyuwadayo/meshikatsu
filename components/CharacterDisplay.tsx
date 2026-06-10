@@ -31,7 +31,7 @@ export default function CharacterDisplay({
         <StageArt stage={stage.stage} size={artSize} />
       )}
       <div className="mt-2 text-center">
-        <p className="text-base font-black text-ink">{stage.name}</p>
+        <p className="text-base font-bold text-ink">{stage.name}</p>
         <p className="text-xs font-semibold text-ink-soft">
           Lv.{level} ・ ステージ{stage.stage}
         </p>

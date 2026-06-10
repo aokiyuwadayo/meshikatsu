@@ -258,7 +258,7 @@ export default function ReceiptPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-black text-ink">{d.name}</p>
+                    <p className="font-bold text-ink">{d.name}</p>
                     <p className="text-xs text-ink-soft">
                       {d.quantity}
                       {d.unit} ・ {CATEGORY_LABELS[d.category]}

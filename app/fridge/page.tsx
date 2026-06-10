@@ -273,7 +273,7 @@ export default function FridgePage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate font-black text-ink">
+                    <span className="truncate font-bold text-ink">
                       {item.name}
                     </span>
                     <span className={`chip ${statusClasses(status)}`}>

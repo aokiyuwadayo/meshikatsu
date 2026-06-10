@@ -61,7 +61,7 @@ export default function NotifyToggle({ items }: NotifyToggleProps) {
         🔔
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-black text-ink">期限が近い食材を通知</p>
+        <p className="text-sm font-bold text-ink">期限が近い食材を通知</p>
         <p className="text-xs text-ink-soft">
           {msg ?? "腐らせる前にお知らせ。アプリを開いた時に1日1回まで。"}
         </p>
@@ -70,7 +70,7 @@ export default function NotifyToggle({ items }: NotifyToggleProps) {
         <button
           type="button"
           onClick={handleDisable}
-          className="shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-black text-white"
+          className="shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white"
         >
           ON
         </button>

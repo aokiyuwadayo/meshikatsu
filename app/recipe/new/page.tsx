@@ -149,7 +149,7 @@ export default function NewRecipePage() {
                   <div className="min-w-0">
                     <Link
                       href={`/recipe?d=${encodeRecipe(r)}`}
-                      className="truncate text-sm font-black text-ink"
+                      className="truncate text-sm font-bold text-ink"
                     >
                       {r.name}
                     </Link>

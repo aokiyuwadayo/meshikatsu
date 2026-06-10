@@ -77,7 +77,7 @@ export default function HomePage() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-white/80">現在のレベル</p>
-            <p className="text-3xl font-black leading-none">Lv.{progress.level}</p>
+            <p className="text-3xl font-bold leading-none">Lv.{progress.level}</p>
             <div className="mt-3">
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-black/15">
                 <div
@@ -167,7 +167,7 @@ export default function HomePage() {
                 className="rounded-2xl border border-brand/20 bg-brand-light/60 p-4"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-black text-ink">{r.name}</p>
+                  <p className="text-sm font-bold text-ink">{r.name}</p>
                   <RecipeShareButton
                     recipe={{
                       name: r.name,
@@ -202,14 +202,14 @@ export default function HomePage() {
             👥
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-black text-ink">
+            <span className="block text-sm font-bold text-ink">
               みんなの料理を見る
             </span>
             <span className="block text-xs text-ink-soft">
               友だちの投稿で、自炊が続く
             </span>
           </span>
-          <span className="shrink-0 text-sm font-black text-accent">フィード →</span>
+          <span className="shrink-0 text-sm font-bold text-accent">フィード →</span>
         </Link>
       </section>
 
@@ -224,7 +224,7 @@ export default function HomePage() {
             <span className="text-3xl" aria-hidden>
               📷
             </span>
-            <span className="text-sm font-black">料理を投稿</span>
+            <span className="text-sm font-bold">料理を投稿</span>
           </Link>
           <Link
             href="/receipt"
@@ -233,7 +233,7 @@ export default function HomePage() {
             <span className="text-3xl" aria-hidden>
               🧾
             </span>
-            <span className="text-sm font-black">レシート読取</span>
+            <span className="text-sm font-bold">レシート読取</span>
           </Link>
         </div>
       </section>
@@ -284,7 +284,7 @@ function Stat({ label, value, unit }: { label: string; value: string; unit: stri
   return (
     <div className="rounded-2xl bg-white/15 py-2">
       <p className="text-[10px] font-semibold text-white/70">{label}</p>
-      <p className="text-lg font-black leading-none">
+      <p className="text-lg font-bold leading-none">
         {value}
         <span className="text-[11px] font-bold">{unit}</span>
       </p>

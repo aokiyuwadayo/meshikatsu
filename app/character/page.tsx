@@ -126,7 +126,7 @@ export default function CharacterPage() {
       <section className="mt-6">
         <h2 className="section-title">
           🎟 スタンプカード
-          <span className="ml-auto rounded-full bg-brand-light px-2.5 py-0.5 text-xs font-black text-brand">
+          <span className="ml-auto rounded-full bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
             利用可能 {available}個
           </span>
         </h2>
@@ -137,7 +137,7 @@ export default function CharacterPage() {
               return (
                 <div
                   key={i}
-                  className={`flex aspect-square items-center justify-center rounded-full border-2 text-lg font-black ${
+                  className={`flex aspect-square items-center justify-center rounded-full border-2 text-lg font-bold ${
                     filled
                       ? "animate-stamp-in border-brand bg-brand-light text-brand"
                       : "border-dashed border-ink/20 text-ink-soft/40"
@@ -165,7 +165,7 @@ export default function CharacterPage() {
             <p className="text-xs font-bold text-ink-soft">
               {justRedeemed.rewardName} のクーポン
             </p>
-            <p className="mt-1 text-2xl font-black tracking-widest text-ink">
+            <p className="mt-1 text-2xl font-bold tracking-widest text-ink">
               {justRedeemed.code}
             </p>
             <p className="mt-1 text-[11px] text-ink-soft">
@@ -186,7 +186,7 @@ export default function CharacterPage() {
                   {reward.emoji}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-ink">{reward.name}</p>
+                  <p className="truncate text-sm font-bold text-ink">{reward.name}</p>
                   <p className="text-xs text-ink-soft">
                     {reward.partner} ・ ⭐×{reward.cost}
                   </p>
@@ -252,7 +252,7 @@ export default function CharacterPage() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-ink">
+                  <p className="truncate text-sm font-bold text-ink">
                     {log.dishName}
                   </p>
                   <p className="mt-0.5 text-xs text-ink-soft">
@@ -263,7 +263,7 @@ export default function CharacterPage() {
                     })}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-brand-light px-2.5 py-1 text-xs font-black text-brand">
+                <span className="shrink-0 rounded-full bg-brand-light px-2.5 py-1 text-xs font-bold text-brand">
                   +{log.xpEarned} XP
                 </span>
               </li>

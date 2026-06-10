@@ -92,7 +92,7 @@ function RecipeViewer({ recipe }: { recipe: SharedRecipe | null }) {
                 key={i}
                 className="flex gap-3 rounded-2xl border border-black/5 bg-white p-3.5 shadow-card"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
                   {i + 1}
                 </span>
                 <span className="text-sm text-ink">{s}</span>
@@ -204,7 +204,7 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
           >
             <div className="flex flex-col items-center gap-1">
               <span className="text-6xl drop-shadow-lg">❤️</span>
-              <span className="rounded-full bg-brand px-4 py-1 text-base font-black text-white">
+              <span className="rounded-full bg-brand px-4 py-1 text-base font-bold text-white">
                 保存！
               </span>
             </div>
@@ -217,7 +217,7 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
           >
             <div className="flex flex-col items-center gap-1">
               <span className="text-6xl drop-shadow-lg">⏭️</span>
-              <span className="rounded-full bg-ink-soft px-4 py-1 text-base font-black text-white">
+              <span className="rounded-full bg-ink-soft px-4 py-1 text-base font-bold text-white">
                 スキップ
               </span>
             </div>
@@ -227,9 +227,9 @@ function SwipeCard({ recipe, onLike, onSkip }: SwipeCardProps) {
         {/* テキスト情報 */}
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-xl font-black text-ink">{recipe.name}</h2>
+            <h2 className="text-xl font-bold text-ink">{recipe.name}</h2>
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-black ${diffColor}`}>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${diffColor}`}>
                 {recipe.difficulty}
               </span>
               <span className="rounded-full bg-cream px-2.5 py-0.5 text-xs font-bold text-ink-soft">
@@ -331,7 +331,7 @@ function SwipeDiscovery() {
     <main className="page">
       {/* トースト */}
       {toast && (
-        <div className="fixed left-1/2 top-20 z-50 -translate-x-1/2 animate-pop-in rounded-2xl bg-brand px-5 py-2.5 text-sm font-black text-white shadow-glow">
+        <div className="fixed left-1/2 top-20 z-50 -translate-x-1/2 animate-pop-in rounded-2xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-glow">
           {toast}
         </div>
       )}
@@ -347,7 +347,7 @@ function SwipeDiscovery() {
         /* 全部見終わった */
         <div className="rounded-3xl border border-black/5 bg-white p-8 text-center shadow-card">
           <p className="text-5xl">🎉</p>
-          <p className="mt-3 font-black text-ink">全レシピを見ました！</p>
+          <p className="mt-3 font-bold text-ink">全レシピを見ました！</p>
           <p className="mt-1 text-sm text-ink-soft">
             保存したレシピ: {savedIds.size} 件
           </p>
@@ -442,7 +442,7 @@ function SwipeDiscovery() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-ink">{r.name}</p>
+                  <p className="truncate text-sm font-bold text-ink">{r.name}</p>
                   <p className="mt-0.5 truncate text-xs text-ink-soft">
                     {r.ingredients.slice(0, 5).join("・")}
                     {r.ingredients.length > 5 ? "…" : ""}
@@ -470,7 +470,7 @@ function SwipeDiscovery() {
       {/* 自作レシピへのリンク */}
       <Link
         href="/recipe/new"
-        className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-brand/40 bg-brand-light/50 p-3.5 text-sm font-black text-brand"
+        className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-brand/40 bg-brand-light/50 p-3.5 text-sm font-bold text-brand"
       >
         ✍️ 自分のレシピを作る
       </Link>

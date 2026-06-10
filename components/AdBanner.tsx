@@ -9,7 +9,7 @@ export default function AdBanner() {
       className="flex h-14 w-full shrink-0 items-center gap-2 border-b border-black/5 bg-white/80 px-3 backdrop-blur"
     >
       {/* 「広告」ラベル（景表法・ユーザー誤認防止のため明示） */}
-      <span className="shrink-0 rounded bg-ink/10 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-ink-soft">
+      <span className="shrink-0 rounded bg-ink/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-ink-soft">
         広告
       </span>
 

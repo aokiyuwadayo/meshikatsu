@@ -66,7 +66,7 @@ export default function StatsPage() {
       {/* 節約額（ヒーロー） */}
       <section className="mt-5 overflow-hidden rounded-4xl bg-gradient-to-br from-brand to-brand-dark p-6 text-white shadow-glow">
         <p className="text-xs font-semibold text-white/80">これまでに節約できた金額</p>
-        <p className="mt-1 text-5xl font-black leading-none">
+        <p className="mt-1 text-5xl font-bold leading-none">
           ¥{stats.savedYen.toLocaleString()}
         </p>
         <p className="mt-2 text-sm font-semibold text-white/85">
@@ -78,7 +78,7 @@ export default function StatsPage() {
       <section className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-3xl border border-black/5 bg-white p-4 shadow-card">
           <p className="text-xs font-bold text-ink-soft">🔥 ロスゼロ継続</p>
-          <p className="mt-1 text-3xl font-black text-ink">
+          <p className="mt-1 text-3xl font-bold text-ink">
             {stats.streakDays}
             <span className="text-base font-bold">日</span>
           </p>
@@ -90,7 +90,7 @@ export default function StatsPage() {
         </div>
         <div className="rounded-3xl border border-black/5 bg-white p-4 shadow-card">
           <p className="text-xs font-bold text-ink-soft">♻️ ロス率</p>
-          <p className="mt-1 text-3xl font-black text-ink">{lossPct}%</p>
+          <p className="mt-1 text-3xl font-bold text-ink">{lossPct}%</p>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-ink/10">
             <div
               className="h-full rounded-full bg-gradient-to-r from-brand to-safe"

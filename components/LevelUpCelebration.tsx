@@ -39,7 +39,7 @@ export default function LevelUpCelebration({
           <div className="animate-burst h-48 w-48 rounded-full bg-gold/30" />
         </div>
 
-        <p className="relative text-sm font-black tracking-widest text-accent">
+        <p className="relative text-sm font-bold tracking-widest text-accent">
           {newStage ? "✨ シンカ！ ✨" : "LEVEL UP!"}
         </p>
 
@@ -49,7 +49,7 @@ export default function LevelUpCelebration({
           </div>
         </div>
 
-        <p className="relative mt-2 text-3xl font-black text-ink">
+        <p className="relative mt-2 text-3xl font-bold text-ink">
           Lv.{level}
         </p>
         <p className="relative mt-1 text-sm font-bold text-brand">

@@ -12,19 +12,19 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
-    emoji: "🧾",
-    title: "レシートを撮るだけ",
-    body: "レシートを撮影すると、AIが食材を読み取って冷蔵庫に自動登録。手入力ゼロで管理が始まります。",
+    emoji: "👥",
+    title: "ひとりの自炊を、みんなで",
+    body: "フィードにはみんなの食ログが流れてきます。誰かの「作った」が、今日のあなたの一品につながる。",
   },
   {
-    emoji: "⏰",
-    title: "ムダを防ぐ",
-    body: "消費期限が近い食材をアラート。期限内に使い切ると XP がもらえて、節約できた金額が貯まっていきます。",
+    emoji: "🍳",
+    title: "作ったら、シェア",
+    body: "料理を記録すると、フィードでみんなに共有。続けるほどXPが貯まり、キャラクターが育ちます。",
   },
   {
-    emoji: "👨‍🍳",
-    title: "ゲーム感覚で続く",
-    body: "料理するたびキャラが育ち、食品ロス削減を実感。スタンプを貯めて提携店の特典とも交換できます。",
+    emoji: "🧊",
+    title: "冷蔵庫もスマートに",
+    body: "レシートを撮るだけで食材を自動登録。期限が近いものはお知らせ。自炊が続くと、食品ロスも自然と減る。",
   },
 ];
 
@@ -95,7 +95,7 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center">
-      <div className="animate-slide-up w-full max-w-md rounded-t-4xl bg-gradient-to-b from-white to-cream p-6 pb-8 shadow-card sm:rounded-4xl">
+      <div className="animate-slide-up w-full max-w-md rounded-t-4xl bg-white p-6 pb-8 shadow-card sm:rounded-4xl">
         {/* スキップ */}
         <div className="flex justify-end">
           <button
@@ -114,7 +114,7 @@ export default function Onboarding() {
               {slide.emoji}
             </span>
           </div>
-          <h2 className="mt-5 text-xl font-black text-ink">{slide.title}</h2>
+          <h2 className="mt-5 text-xl font-bold text-ink">{slide.title}</h2>
           <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-soft">
             {slide.body}
           </p>

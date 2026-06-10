@@ -165,7 +165,7 @@ export default function CookPage() {
             key={logs.length /* 記録ごとに再マウントして再生 */}
             className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex justify-center"
           >
-            <span className="animate-xp-pop text-3xl font-black text-accent drop-shadow">
+            <span className="animate-xp-pop text-3xl font-bold text-accent drop-shadow">
               +{XP_REWARDS.cookPhoto} XP!
             </span>
           </div>
@@ -201,7 +201,7 @@ export default function CookPage() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-black text-ink">{log.dishName}</p>
+                  <p className="truncate font-bold text-ink">{log.dishName}</p>
                   <p className="text-xs text-ink-soft">
                     {new Date(log.cookedAt).toLocaleString("ja-JP", {
                       month: "long",
@@ -211,7 +211,7 @@ export default function CookPage() {
                     })}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-accent/10 px-2.5 py-1 text-sm font-black text-accent">
+                <span className="shrink-0 rounded-full bg-accent/10 px-2.5 py-1 text-sm font-bold text-accent">
                   +{log.xpEarned}
                 </span>
               </li>
