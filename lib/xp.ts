@@ -8,6 +8,9 @@ import type { CharacterStage, UserProgress } from "@/types";
 /** 1レベルに必要な XP */
 export const XP_PER_LEVEL = 100;
 
+/** レベル上限（カンスト）。将来のアプデでここを上げて解放する */
+export const LEVEL_CAP = 99;
+
 /** XP 獲得アクション（事業計画書 §3 機能④に対応） */
 export const XP_REWARDS = {
   cookPhoto: 50, // 料理写真を投稿する
@@ -32,22 +35,32 @@ export const STAGES: CharacterStage[] = [
   { stage: 5, minLevel: 30, emoji: "⭐", name: "料理の神様" },
 ];
 
-/** totalXP からレベルを算出 */
+/** totalXP からレベルを算出（LEVEL_CAP でカンスト） */
 export function levelFromXP(totalXP: number): number {
-  return Math.floor(Math.max(0, totalXP) / XP_PER_LEVEL) + 1;
+  return Math.min(
+    LEVEL_CAP,
+    Math.floor(Math.max(0, totalXP) / XP_PER_LEVEL) + 1
+  );
 }
 
-/** 現在レベル内で獲得済みの XP（0〜XP_PER_LEVEL-1） */
+/** カンスト（Lv.99）に到達しているか */
+export function isMaxLevel(totalXP: number): boolean {
+  return levelFromXP(totalXP) >= LEVEL_CAP;
+}
+
+/** 現在レベル内で獲得済みの XP（カンスト後は満タン表示） */
 export function xpIntoLevel(totalXP: number): number {
+  if (isMaxLevel(totalXP)) return XP_PER_LEVEL;
   return Math.max(0, totalXP) % XP_PER_LEVEL;
 }
 
-/** 次のレベルまでに必要な残り XP */
+/** 次のレベルまでに必要な残り XP（カンスト後は 0） */
 export function xpToNextLevel(totalXP: number): number {
-  return XP_PER_LEVEL - xpIntoLevel(totalXP);
+  if (isMaxLevel(totalXP)) return 0;
+  return XP_PER_LEVEL - (Math.max(0, totalXP) % XP_PER_LEVEL);
 }
 
-/** XPバー表示用の進捗率（0〜1） */
+/** XPバー表示用の進捗率（0〜1、カンスト後は 1） */
 export function levelProgressRatio(totalXP: number): number {
   return xpIntoLevel(totalXP) / XP_PER_LEVEL;
 }

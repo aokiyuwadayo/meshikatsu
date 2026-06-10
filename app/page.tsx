@@ -11,6 +11,7 @@ import { sortByExpiry, statusLabel, statusClasses, expiryStatus } from "@/lib/ex
 import { suggestRecipes, seasonFromMonth, type RecipeSuggestion } from "@/lib/recommend";
 import { seedDemo, clearDemo } from "@/lib/seed";
 import { isEnabled, notifyExpiring } from "@/lib/notify";
+import { isMaxLevel, levelProgressRatio, xpToNextLevel } from "@/lib/xp";
 import { getClientName, setClientName } from "@/lib/profile";
 import CharacterDisplay from "@/components/CharacterDisplay";
 import XPBar from "@/components/XPBar";
@@ -82,18 +83,27 @@ export default function HomePage() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-white/80">現在のレベル</p>
-            <p className="text-3xl font-bold leading-none">Lv.{progress.level}</p>
+            <p className="text-3xl font-bold leading-none">
+              Lv.{progress.level}
+              {isMaxLevel(progress.totalXP) && (
+                <span className="ml-2 align-middle rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-white">
+                  MAX
+                </span>
+              )}
+            </p>
             <div className="mt-3">
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-black/15">
                 <div
                   className="h-full rounded-full bg-gold transition-all duration-700"
                   style={{
-                    width: `${Math.max(4, (progress.totalXP % 100))}%`,
+                    width: `${Math.max(4, Math.round(levelProgressRatio(progress.totalXP) * 100))}%`,
                   }}
                 />
               </div>
               <p className="mt-1 text-[11px] font-semibold text-white/80">
-                次のレベルまで {100 - (progress.totalXP % 100)} XP
+                {isMaxLevel(progress.totalXP)
+                  ? "カンスト達成！上限は今後のアプデで解放 🎉"
+                  : `次のレベルまで ${xpToNextLevel(progress.totalXP)} XP`}
               </p>
             </div>
           </div>
