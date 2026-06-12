@@ -25,6 +25,55 @@ body {
   padding-bottom: 5.5rem;
 }
 
+/* ============================================================
+   木目テクスチャ（画像なし・CSSグラデーションのみ）
+   - .bg-wood      … デスクトップの余白側。はっきりめの明るい木のテーブル
+   - .bg-wood-soft … アプリ内の背景。ごく薄い木目（白カードが浮かぶ台）
+   板の継ぎ目（細い縦線）＋木目のスジ（不規則な縦帯）＋全体の暖色シアンの3層
+   ============================================================ */
+.bg-wood {
+  background-color: #ead9c0;
+  background-image:
+    repeating-linear-gradient(
+      92deg,
+      rgba(133, 94, 54, 0.13) 0px,
+      rgba(133, 94, 54, 0.13) 2px,
+      transparent 2px,
+      transparent 96px
+    ),
+    repeating-linear-gradient(
+      92deg,
+      rgba(160, 118, 72, 0.09) 0px,
+      transparent 5px,
+      rgba(160, 118, 72, 0.05) 11px,
+      transparent 17px,
+      rgba(160, 118, 72, 0.1) 26px,
+      transparent 33px
+    ),
+    linear-gradient(180deg, #f0e2cc, #e6d3b6);
+}
+.bg-wood-soft {
+  background-color: #faf4e9;
+  background-image:
+    repeating-linear-gradient(
+      92deg,
+      rgba(150, 110, 70, 0.055) 0px,
+      rgba(150, 110, 70, 0.055) 1.5px,
+      transparent 1.5px,
+      transparent 110px
+    ),
+    repeating-linear-gradient(
+      92deg,
+      rgba(165, 125, 80, 0.04) 0px,
+      transparent 6px,
+      rgba(165, 125, 80, 0.028) 13px,
+      transparent 20px,
+      rgba(165, 125, 80, 0.045) 30px,
+      transparent 38px
+    ),
+    linear-gradient(180deg, #fbf6ec, #f5ecdb);
+}
+
 @layer components {
   /* 各画面の標準パディング */
   .page {

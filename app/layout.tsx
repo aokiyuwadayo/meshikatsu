@@ -32,9 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="bg-[#F2F5F4]">
-        {/* デスクトップでは中央のスマホ幅カラム。背景は白でクリーンに */}
-        <div className="app-shell relative mx-auto min-h-screen max-w-md bg-white shadow-xl shadow-ink/5">
+      <body className="bg-wood">
+        {/* デスクトップ余白は木のテーブル、アプリ内はごく薄い木目（白カードが浮かぶ） */}
+        <div className="app-shell relative mx-auto min-h-screen max-w-md bg-wood-soft shadow-xl shadow-ink/10">
           {children}
         </div>
         <Navigation />

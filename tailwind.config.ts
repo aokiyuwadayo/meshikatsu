@@ -31,7 +31,7 @@ const config: Config = {
           soft: "#5C6764",
         },
         // 微妙な塗り用のごく淡いニュートラル（背景は白に）
-        cream: "#F2F5F4",
+        cream: "#F6EFE3", // 木目背景になじむ暖色ニュートラル
       },
       fontFamily: {
         sans: [
